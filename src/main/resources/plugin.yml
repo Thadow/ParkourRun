@@ -1,0 +1,11 @@
+name: ParkoruRun
+main: io.thadow.parkourrun.Main
+author: Thadow (Nicolás)
+version: 1.0
+depend: [PlaceholderAPI]
+
+commands:
+  parkourrun:
+    aliases: [pkr]
+  leave:
+    aliases: [salir]

@@ -1,0 +1,180 @@
+Prefix: "&8[&6ParkourRun&8]"
+No Permission: "%prefix% &cNo tienes el permiso necesario para ejecutar esta acción &7(&e%permNode%&7)"
+Messages:
+  Invalid Arena Parameter:
+    Arena ID: "%prefix% &cParámetro Invalido (ArenaID / %arenaID%)"
+    Arena Name: "%prefix% &cParámetro Invalido (Arena Name / %arenaID%)"
+    Min Players: "%prefix% &cParámetro Invalido (Min Players / %arenaID%)"
+    Max Players: "%prefix% &cParámetro Invalido (Max Players / %arenaID%)"
+    Min > Max: "%prefix% &cParámetro Invalido (Min Players > Max Players / %arenaID%)"
+    Spawn Location: "%prefix% &cParámetro Invalido (Spawn Location / %arenaID%)"
+    Wait Location: "%prefix% &cParámetro Invalido (Wait Location / %arenaID%)"
+    Wait To Start: "%prefix% &cParámetro Invalido (Wait To Start Time / %arenaID%)"
+    Wait To Re-Enable: "%prefix% &cParámetro Invalido (Wait To Re-Enable Time / %arenaID%)"
+    Win Zone Corner: "%prefix% &cParámetro Invalido (Win Zone Corner 1-2 / %arenaID%)"
+    Arena Zone Corner: "%prefix% &cParámetro Invalido (Arena Zone Corner 1-2 / %arenaID%)"
+  Arena:
+    Arena Disabled: "%prefix% &cLa arena esta desactivada"
+    Arena Created: "%prefix% &aLa arena ha sido creada correctamente!"
+    Arena Deleted: "%prefix% &cLa arena ha sido eliminada correctamente!"
+    Arena Already Exists: "%prefix% &cLa arena ya existe!"
+    Can't Modify: "%prefix% &cNo puedes modificar un parámetro de una arena mientras esta activa!"
+    Can't Disable: "%prefix% &cNo puedes desactivar una arena mientras esta en juego!"
+    Arena Already Enabled: "%prefix% &cLa arena ya esta activada"
+    Arena Already Disabled: "%prefix% &cLa arena ya esta desactivada"
+    Parameter Changed:
+      Arena Disabled:
+        Message: "%prefix% &cLa arena ha sido desactivada correctamente!"
+        Message To Players: "%prefix% &cLa arena ha sido desactivada, todos han sido enviados al spawn."
+      Arena Enabled: "%prefix% &aLa arena ha sido activada correctamente!"
+      Arena Created: "%prefix% &aArena creada correctamente! &7(ArenaID: %arenaID%, Arena Name: %arenaName%, minPlayers: %minPlayers%, maxPlayers: %maxPlayers%)"
+      Spawn Location Set: "%prefix% &aLocalización del spawn cambiada correctamente! &7(World: %world%, XYZ: %x%-%y%-%z%, Pitch: %pitch%, Yaw: %yaw% - ArenaID: %arenaID%)"
+      Wait Location Set: "%prefix% &aLocalización del spawn de espera cambiada correctamente! &7(World: %world%, XYZ: %x%-%y%-%z%, Pitch: %pitch%, Yaw: %yaw% - ArenaID: %arenaID%)"
+      Min Players Set: "%prefix% &aCantidad minima de jugadores cambiada correctamente! &7(Cantidad: %minPlayers% - ArenaID: %arenaID%)"
+      Max Players Set: "%prefix% &aCantidad maxima de jugadores cambiada correctamente! &7(Cantidad: %maxPlayers% - ArenaID: %arenaID%)"
+      Wait Time Set: "%prefix% &aTiempo de espera cambiado correctamente! &7(Tiempo: %time% - ArenaID: %arenaID%)"
+      Wait Time To Re-Enable: "%prefix% &aTiempo de espera de re-activación cambiado correctamente! &7(Tiempo: %time% - ArenaID: %arenaID%)"
+      Arena Name Set: "%prefix% &aNombre de la arena cambiado correctamente! &7(Nombre: %arenaName%&7 - ArenaID: %arenaID%)"
+      Win Zone Set: "%prefix% &aRegion de la WinZone cambiada correctamente! &7(XYZ: %x%-%y%-%z%, Esquina: %corner% - ArenaID: %arenaID%)"
+      Arena Zone Set: "%prefix% &cRegion de la Arena cambiada correctamente! &7(XYZ: %x%-%y%-%z%, Esquina: %corner% - ArenaID: %arenaID%)"
+      Checkpoint Added: "%prefix% &aCheckpoint añadido correctamente! &7(ID: %checkpointID%, Total: %totalCheckpoints% - ArenaID: %arenaID%)"
+      Checkpoint Deleted: "%prefix% &aCheckpoint removido correctamente! &7(ID: %checkpointID%, Total: %totalCheckpoints% - ArenaID: %arenaID%)"
+      Show Info:
+        Enabled: true
+        Message:
+          - "&m                                         "
+          - ""
+          - "&eEnabled: %enabled%"
+          - "&eArenaID: %arenaID%"
+          - "&eArena Name: %arenaName%"
+          - "&eWait To Start Time: %waitTime%"
+          - "&eWait Time To Re-Enable: %reEnableTime%"
+          - "&eMin Players: %minPlayers%"
+          - "&eMax Players: %maxPlayers%"
+          - "&eMax Time: %maxTime%"
+          - "&eTotal Checkpoints: %totalCheckpoints%"
+          - ""
+          - "&m                                         "
+    Already In Arena: "%prefix% &cYa estas en una arena!"
+    Nobody: "Nadie"
+    Unknown Arena: "%prefix% &cArena no valida"
+    In Game: "%prefix% &cLa arena ya ha comenzado!"
+    Ending: "%prefix% &cLa arena esta terminando!"
+    Full: "%prefix% &cLa arena esta llena!"
+    Countdown Stopped: "&cLa cuenta regresiva a sido detenida! No hay jugadores suficientes para iniciar la arena"
+    Player Join: "&a%player% &ese ha unido (&b%current%&e/&b%max%&e)"
+    Player Leave In Waiting: "&a%player% &cse ha ido &e(&b%current%&e/&b%max%&e)"
+    Player Leave In Game: "&a%player% &esalió"
+    Starting In:
+      Message: "&eEl juego iniciara en &c%seconds% &esegundos!"
+      Titles:
+        Enabled: true
+        Fade In: 20
+        Stay: 30
+        Fade Out: 10
+      Broadcast:
+        Second 10:
+          Title: "&c10"
+          SubTitle: ""
+        Second 5:
+          Title: "&c5"
+          SubTitle: ""
+        Second 4:
+          Title: "&c4"
+          SubTitle: ""
+        Second 3:
+          Title: "&c3"
+          SubTitle: ""
+        Second 2:
+          Title: "&c2"
+          SubTitle: ""
+        Second 1:
+          Message: "&eEl juego iniciara en &c1 &esegundo"
+          Title: "&c1"
+          SubTitle: ""
+      Sound:
+        Enabled: true
+        Sound: NOTE_PLING;10;10
+    Started:
+      Message:
+        - "asd"
+      Titles:
+        Enabled: true
+        Title: "&6Iniciamos!"
+        SubTitle: "&eBuena suerte"
+        Fade In: 20
+        Stay: 30
+        Fade Out: 10
+      Sound:
+        Enabled: true
+        Sound: NOTE_PLING;10;10
+    Draw:
+      Message:
+        - "&cPartida finalizada! &eNadie a ganado dentro del tiempo propuesto"
+      Titles:
+        Enabled: true
+        Title: "&cPartida finalizada!"
+        SubTitle: "&eNadie a ganado dentro del tiempo propuesto"
+        Fade In: 20
+        Stay: 30
+        Fade Out: 10
+      Sound:
+        Enabled: true
+        Sound: NOTE_PLING;10;10
+    Ended:
+      Fireworks:
+        Enabled: true
+      Message:
+        - "&e&m                               "
+        - ""
+        - "     &aPartida Finalizada!"
+        - "    &6Ganador&8: &e%winner%"
+        - ""
+        - "&e&m                               "
+      Titles:
+        Winner:
+          Enabled: true
+          Title: "&6Victoria!"
+          SubTitle: "&aHas sido el primero en ganar el parkour!"
+          Fade In: 20
+          Stay: 30
+          Fade Out: 10
+        Losers:
+          Enabled: true
+          Title: "&cDerrota!"
+          SubTitle: "&e%winner% ha ganado la partida"
+          Fade In: 20
+          Stay: 30
+          Fade Out: 10
+      Sound:
+        Enabled: true
+        Sound: NOTE_PLING;10;10
+  Commands:
+    Main Command:
+      Usages:
+        - "&m&e---------------------------------"
+        - ""
+        - "&aComandos disponibles:"
+        - ""
+        - "&e/pkr createArena (arenaID) (minPlayers) (maxPlayers) (arenaName)"
+        - "&e/pkr deleteArena (arenaID)"
+        - "&e/pkr disableArena (arenaID)"
+        - "&e/pkr enableArena (arenaID)"
+        - "&e/pkr join (arenaID)"
+        - "&e/pkr join random"
+        - "&e/leave"
+        - "&e/pkr setSpawn (arenaID)"
+        - "&e/pkr setWaitSpawn (arenaID)"
+        - "&e/pkr setMinPlayers (minPlayers) (arenaID)"
+        - "&e/pkr setMaxPlayers (maxPlayers) (arenaID)"
+        - "&e/pkr setWaitTime (time in seconds) (arenaID)"
+        - "&e/pkr setWaitTimeToReEnable (time in seconds) (arenaID)"
+        - "&e/pkr setArenaName (arenaID) (arenaName)"
+        - "&e/pkr setWinZone pos1/pos2 (arenaID)"
+        - "&e/pkr setArenaZone pos1/pos2 (arenaID)"
+        - "&e/pkr addCheckpoint (arenaID)"
+        - "&e/pkr deleteCheckpoint (arenaID)"
+        - ""
+        - "&m&e---------------------------------"
+    Leave:
+      Can't Leave: "%prefix% &cEste comando solo puede ser ejecutado en arena."

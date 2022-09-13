@@ -1,0 +1,5 @@
+Configuration:
+  StorageType: LOCAL # LOCAL, SQL_LOCAL, MySQL
+  Arenas:
+    Per Arena Chat: true
+    Disable Fall Damage: true
