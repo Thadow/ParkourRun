@@ -85,6 +85,8 @@ public class ArenaManager {
     }
 
     public void loadArenas() {
+        if (ArenasConfiguration.getConfiguration().getConfigurationSection("Arenas") == null)
+            return;
         for (String arena : ArenasConfiguration.getConfiguration().getConfigurationSection("Arenas").getKeys(false)) {
             String arenaDisplayName = ArenasConfiguration.getConfiguration().getString("Arenas." + arena + ".Arena Name");
             int minPlayers = ArenasConfiguration.getConfiguration().getInt("Arenas." + arena + ".Min Players");

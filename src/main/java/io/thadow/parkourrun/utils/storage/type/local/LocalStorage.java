@@ -1,6 +1,9 @@
-package io.thadow.parkourrun.utils.storage.type;
+package io.thadow.parkourrun.utils.storage.type.local;
 
 import io.thadow.parkourrun.Main;
+import io.thadow.parkourrun.data.PlayerData;
+import io.thadow.parkourrun.managers.PlayerDataManager;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -10,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.ArrayList;
 
 public class LocalStorage {
     private static FileConfiguration configuration = null;
@@ -30,7 +34,7 @@ public class LocalStorage {
         configuration.setDefaults(yamlConfiguration);
     }
 
-    public static void register() {
+    public static void setup() {
         File configuration = new File(Main.getInstance().getDataFolder(), "playersdata.yml");
         if (!configuration.exists()) {
             Main.getInstance().saveResource("playersdata.yml", false);
@@ -71,7 +75,10 @@ public class LocalStorage {
 
     public static boolean containsPlayer(Player player) {
         String uuid = player.getUniqueId().toString();
-        return get().contains("Players" + uuid);
+        if (get().contains("Players." + uuid + ".Name")) {
+            return true;
+        }
+        return false;
     }
 
     public static Integer getWins(Player player) {
@@ -94,7 +101,9 @@ public class LocalStorage {
         String uuid = player.getUniqueId().toString();
         Integer currentWins = getWins(player);
         Integer newWins = currentWins + 1;
-        get().set("Players." + uuid + ".Wins", String.valueOf(newWins));
+        get().set("Players." + uuid + ".Wins", newWins);
+        PlayerData playerData = PlayerDataManager.getPlayerDataManager().getPlayerData(player.getName());
+        playerData.addWin();
         save();
     }
 
@@ -102,7 +111,40 @@ public class LocalStorage {
         String uuid = player.getUniqueId().toString();
         Integer currentLoses = getLoses(player);
         Integer newLoses = currentLoses + 1;
-        get().set("Players." + uuid + ".Loses", String.valueOf(newLoses));
+        get().set("Players." + uuid + ".Loses", newLoses);
+        PlayerData playerData = PlayerDataManager.getPlayerDataManager().getPlayerData(player.getName());
+        playerData.addLose();
+        save();
+    }
+
+    public static ArrayList<PlayerData> getPlayers() {
+        ArrayList<PlayerData> players = new ArrayList<>();
+        if (get().getConfigurationSection("Players").getKeys(false) == null) {
+            return players;
+        }
+        for (String uuid : get().getConfigurationSection("Players").getKeys(false)) {
+            String player_name = get().getString("Players." + uuid + ".Name");
+            int wins = get().getInt("Players." + uuid + ".Wins");
+            int loses = get().getInt("Players." + uuid + ".Loses");
+            Bukkit.getConsoleSender().sendMessage("Player Found: " + player_name);
+            Bukkit.getConsoleSender().sendMessage("UUID: " + uuid);
+            Bukkit.getConsoleSender().sendMessage("Wins: " + wins);
+            Bukkit.getConsoleSender().sendMessage("Loses: " + loses);
+            players.add(new PlayerData(player_name, uuid, wins, loses));
+        }
+        return players;
+    }
+
+    public static void savePlayers() {
+        for (PlayerData playerData : PlayerDataManager.getPlayerDataManager().getPlayers()) {
+            String uuid = playerData.getUUID();
+            String player_name = playerData.getPlayer();
+            int wins = playerData.getWins();
+            int loses = playerData.getLoses();
+            get().set("Players." + uuid + ".Name", player_name);
+            get().set("Players." + uuid + ".Wins", wins);
+            get().set("Players." + uuid + ".Loses", loses);
+        }
         save();
     }
 }

@@ -1,5 +1,17 @@
 Configuration:
-  StorageType: LOCAL # LOCAL, SQL_LOCAL, MySQL
+  StorageType: LOCAL # LOCAL, MySQL
+  MySQL:
+    Enabled: false
+    Database: database
+    Host: localhost
+    Port: 3306
+    Username: root
+    Password: root
   Arenas:
     Per Arena Chat: true
     Disable Fall Damage: true
+    Win:
+      Need All Checkpoints: true
+    Loses:
+      Add On Arena Leave/Disconnect: true
+      Add On Arena Tie: true

@@ -7,6 +7,7 @@ import io.thadow.parkourrun.utils.lib.scoreboard.ScoreboardType;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
 import io.thadow.parkourrun.utils.lib.titles.Titles;
+import io.thadow.parkourrun.utils.storage.Storage;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -497,25 +498,25 @@ public class Arena {
     }
 
     public void finalizeArena(boolean closingServer) {
-        List<String> messages = MessagesConfiguration.getListPath("Messages.Arena.Draw.Message");
+        List<String> messages = MessagesConfiguration.getListPath("Messages.Arena.Tie.Message");
         for (String message : messages) {
             if (!closingServer) {
                 message = Utils.format(message);
                 broadcast(message);
             }
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Draw.Titles.Enabled") && !closingServer) {
-            int fadeIn = MessagesConfiguration.getInt("Messages.Arena.Draw.Titles.Fade In");
-            int fadeOut = MessagesConfiguration.getInt("Messages.Arena.Draw.Titles.Fade Out");
-            int stay = MessagesConfiguration.getInt("Messages.Arena.Draw.Titles.Stay");
-            String title = MessagesConfiguration.getPath("Messages.Arena.Draw.Titles.Title");
-            String subTitle = MessagesConfiguration.getPath("Messages.Arena.Draw.Titles.SubTitle");
+        if (MessagesConfiguration.getBoolean("Messages.Arena.Tie.Titles.Enabled") && !closingServer) {
+            int fadeIn = MessagesConfiguration.getInt("Messages.Arena.Tie.Titles.Fade In");
+            int fadeOut = MessagesConfiguration.getInt("Messages.Arena.Tie.Titles.Fade Out");
+            int stay = MessagesConfiguration.getInt("Messages.Arena.Tie.Titles.Stay");
+            String title = MessagesConfiguration.getPath("Messages.Arena.Tie.Titles.Title");
+            String subTitle = MessagesConfiguration.getPath("Messages.Arena.Tie.Titles.SubTitle");
             for (Player players : getPlayers()) {
                 Titles.sendTitle(players, fadeIn, stay, fadeOut, Utils.colorize(title), Utils.colorize(subTitle));
             }
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Draw.Sound.Enabled") && !closingServer) {
-            String soundPath = MessagesConfiguration.getPath("Messages.Arena.Draw.Sound.Sound");
+        if (MessagesConfiguration.getBoolean("Messages.Arena.Tie.Sound.Enabled") && !closingServer) {
+            String soundPath = MessagesConfiguration.getPath("Messages.Arena.Tie.Sound.Sound");
             for (Player players : getPlayers()) {
                 Utils.playSound(players, soundPath);
             }
@@ -538,6 +539,12 @@ public class Arena {
 
     public void finalizeArenaWithWinner(Player winner) {
         setWinner(winner);
+        Storage.getStorage().addWin(winner);
+        for (Player losers : getPlayers()) {
+            if (!(losers == winner)) {
+                Storage.getStorage().addLose(losers);
+            }
+        }
         setArenaStatus(ArenaStatus.ENDING);
         List<String> messages = MessagesConfiguration.getListPath("Messages.Arena.Ended.Message");
         for (String message : messages) {

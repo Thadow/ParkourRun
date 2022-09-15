@@ -108,12 +108,12 @@ Messages:
       Sound:
         Enabled: true
         Sound: NOTE_PLING;10;10
-    Draw:
+    Tie:
       Message:
-        - "&cPartida finalizada! &eNadie a ganado dentro del tiempo propuesto"
+        - "&cEmpate! &eNadie a ganado dentro del tiempo propuesto"
       Titles:
         Enabled: true
-        Title: "&cPartida finalizada!"
+        Title: "&cEmpate!"
         SubTitle: "&eNadie a ganado dentro del tiempo propuesto"
         Fade In: 20
         Stay: 30

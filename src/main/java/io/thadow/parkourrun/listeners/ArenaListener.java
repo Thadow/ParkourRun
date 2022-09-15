@@ -1,6 +1,7 @@
-package io.thadow.parkourrun.arena;
+package io.thadow.parkourrun.listeners;
 
 import io.thadow.parkourrun.Main;
+import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.managers.CheckpointManager;

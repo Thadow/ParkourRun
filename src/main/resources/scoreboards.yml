@@ -1,0 +1,59 @@
+Scoreboards:
+  Update: 10
+  Lobby:
+    Enabled: true
+    Title: "&eParkourRun"
+    Lines:
+      - "%server_time_yyyy/MM/dd%"
+      - "&7"
+      - "%player_name%"
+      - "&7Wins: &a%wins%"
+      - "&7Loses: &c%loses%"
+      - ""
+      - "&7mc.myserver.com"
+  Waiting:
+    Enabled: true
+    Title: "&eWaiting"
+    Lines:
+      - "%server_time_yyyy/MM/dd%"
+      - "&7"
+      - "&aMap&7: &a%arenaName%"
+      - "&7 "
+      - "&7Waiting..."
+      - ""
+      - "&7mc.myserver.com"
+  Starting:
+    Enabled: true
+    Title: "&eStarting"
+    Lines:
+      - "%server_time_yyyy/MM/dd%"
+      - "&7"
+      - "&aMap&7: &a%arenaName%"
+      - "&7 "
+      - "&eStarting in %seconds%"
+      - ""
+      - "&7mc.myserver.com"
+  In Game:
+    Enabled: true
+    Title: "&eParkourRun"
+    Lines:
+      - "%server_time_yyyy/MM/dd%"
+      - "&7"
+      - "&aMap&7: &a%arenaName%"
+      - "&7 "
+      - "&eTime: %time%"
+      - ""
+      - "&7mc.myserver.com"
+  Ending:
+    Enabled: true
+    Title: "&eParkourRun"
+    Lines:
+      - "%server_time_yyyy/MM/dd%"
+      - "&7"
+      - "&aMap&7: &a%arenaName%"
+      - "&7 "
+      - "&eTime: %time%"
+      - ""
+      - "&eGanador: &a%winner%"
+      - ""
+      - "&7mc.myserver.com"

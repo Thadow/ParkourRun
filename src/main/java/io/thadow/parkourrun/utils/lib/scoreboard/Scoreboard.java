@@ -4,6 +4,7 @@ import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.ArenaManager;
+import io.thadow.parkourrun.managers.PlayerDataManager;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
 import io.thadow.parkourrun.utils.configurations.ScoreboardConfiguration;
@@ -74,8 +75,10 @@ public class Scoreboard {
             ArrayList<String> newLines = new ArrayList<>();
             for (String line : lines) {
                 line = Utils.replace(line, "%player_name%", player.getName());
-                line = Utils.replace(line, "%wins%", String.valueOf(0));
-                line = Utils.replace(line, "%losses%", String.valueOf(0));
+                int wins = PlayerDataManager.getPlayerDataManager().getPlayerWins(player);
+                line = Utils.replace(line, "%wins%", String.valueOf(wins));
+                int loses = PlayerDataManager.getPlayerDataManager().getPlayerLoses(player);
+                line = Utils.replace(line, "%loses%", String.valueOf(loses));
                 line = Utils.colorize(line);
                 newLines.add(line);
             }
@@ -85,7 +88,6 @@ public class Scoreboard {
                 board.set(PlaceholderAPI.setPlaceholders(player, newLines.get(i)), newLines.size() - i);
                 board.setName(title);
             }
-            return;
         }
         if (ScoreboardConfiguration.getBoolean("Scoreboards.Waiting.Enabled") && type == ScoreboardType.WAITING) {
             PlayerBoard playerBoard = Scoreboard.instance().getBoard(player);
@@ -97,8 +99,10 @@ public class Scoreboard {
             ArrayList<String> newLines = new ArrayList<>();
             for (String line : lines) {
                 line = Utils.replace(line, "%player_name%", player.getName());
-                line = Utils.replace(line, "%wins%", String.valueOf(0));
-                line = Utils.replace(line, "%losses%", String.valueOf(0));
+                int wins = PlayerDataManager.getPlayerDataManager().getPlayerWins(player);
+                line = Utils.replace(line, "%wins%", String.valueOf(wins));
+                int loses = PlayerDataManager.getPlayerDataManager().getPlayerLoses(player);
+                line = Utils.replace(line, "%loses%", String.valueOf(loses));
                 line = Utils.replace(line, "%arenaName%", arena.getArenaDisplayName());
                 line = Utils.colorize(line);
                 newLines.add(line);
@@ -109,7 +113,6 @@ public class Scoreboard {
                 board.set(PlaceholderAPI.setPlaceholders(player, newLines.get(i)), newLines.size() - i);
                 board.setName(title);
             }
-            return;
         }
         if (ScoreboardConfiguration.getBoolean("Scoreboards.Starting.Enabled") && type == ScoreboardType.STARTING) {
             PlayerBoard playerBoard = Scoreboard.instance().getBoard(player);
@@ -121,8 +124,10 @@ public class Scoreboard {
             ArrayList<String> newLines = new ArrayList<>();
             for (String line : lines) {
                 line = Utils.replace(line, "%player_name%", player.getName());
-                line = Utils.replace(line, "%wins%", String.valueOf(0));
-                line = Utils.replace(line, "%losses%", String.valueOf(0));
+                int wins = PlayerDataManager.getPlayerDataManager().getPlayerWins(player);
+                line = Utils.replace(line, "%wins%", String.valueOf(wins));
+                int loses = PlayerDataManager.getPlayerDataManager().getPlayerLoses(player);
+                line = Utils.replace(line, "%loses%", String.valueOf(loses));
                 line = Utils.replace(line, "%arenaName%", arena.getArenaDisplayName());
                 line = Utils.replace(line, "%seconds%", String.valueOf(arena.getTime() + 1));
                 line = Utils.colorize(line);
@@ -134,7 +139,6 @@ public class Scoreboard {
                 board.set(PlaceholderAPI.setPlaceholders(player, newLines.get(i)), newLines.size() - i);
                 board.setName(title);
             }
-            return;
         }
         if (ScoreboardConfiguration.getBoolean("Scoreboards.In Game.Enabled") && type == ScoreboardType.PLAYING) {
             PlayerBoard playerBoard = Scoreboard.instance().getBoard(player);
@@ -146,8 +150,10 @@ public class Scoreboard {
             ArrayList<String> newLines = new ArrayList<>();
             for (String line : lines) {
                 line = Utils.replace(line, "%player_name%", player.getName());
-                line = Utils.replace(line, "%wins%", String.valueOf(0));
-                line = Utils.replace(line, "%losses%", String.valueOf(0));
+                int wins = PlayerDataManager.getPlayerDataManager().getPlayerWins(player);
+                line = Utils.replace(line, "%wins%", String.valueOf(wins));
+                int loses = PlayerDataManager.getPlayerDataManager().getPlayerLoses(player);
+                line = Utils.replace(line, "%loses%", String.valueOf(loses));
                 line = Utils.replace(line, "%arenaName%", arena.getArenaDisplayName());
                 line = Utils.replace(line, "%time%", Utils.getFormattedTime(arena.getMaxTime() + 1));
                 line = Utils.colorize(line);
@@ -159,7 +165,6 @@ public class Scoreboard {
                 board.set(PlaceholderAPI.setPlaceholders(player, newLines.get(i)), newLines.size() - i);
                 board.setName(title);
             }
-            return;
         }
         if (ScoreboardConfiguration.getBoolean("Scoreboards.Ending.Enabled") && type == ScoreboardType.ENDING) {
             PlayerBoard playerBoard = Scoreboard.instance().getBoard(player);
@@ -171,8 +176,10 @@ public class Scoreboard {
             ArrayList<String> newLines = new ArrayList<>();
             for (String line : lines) {
                 line = Utils.replace(line, "%player_name%", player.getName());
-                line = Utils.replace(line, "%wins%", String.valueOf(0));
-                line = Utils.replace(line, "%losses%", String.valueOf(0));
+                int wins = PlayerDataManager.getPlayerDataManager().getPlayerWins(player);
+                line = Utils.replace(line, "%wins%", String.valueOf(wins));
+                int loses = PlayerDataManager.getPlayerDataManager().getPlayerLoses(player);
+                line = Utils.replace(line, "%loses%", String.valueOf(loses));
                 line = Utils.replace(line, "%arenaName%", arena.getArenaDisplayName());
                 line = Utils.replace(line, "%time%", Utils.getFormattedTime(arena.getMaxTime()));
                 line = arena.getWinner() != null ? Utils.replace(line, "%winner%", arena.getWinner().getName()) : Utils.replace(line, "%winner%", MessagesConfiguration.getPath("Messages.Arena.Nobody"));
@@ -199,28 +206,25 @@ public class Scoreboard {
                         for (Player players : arena.getPlayers()) {
                             Scoreboard.changeScoreboard(ScoreboardType.WAITING, players, arena);
                         }
-                        continue;
                     }
                     if (arena.getArenaStatus() == ArenaStatus.STARTING) {
                         for (Player players : arena.getPlayers()) {
                             Scoreboard.changeScoreboard(ScoreboardType.STARTING, players, arena);
                         }
-                        continue;
                     }
                     if (arena.getArenaStatus() == ArenaStatus.PLAYING) {
                         for (Player players : arena.getPlayers()) {
                             Scoreboard.changeScoreboard(ScoreboardType.PLAYING, players, arena);
                         }
-                        continue;
                     }
-                    if (arena.getArenaStatus() != ArenaStatus.ENDING) continue;
-                    for (Player players : arena.getPlayers()) {
-                        Scoreboard.changeScoreboard(ScoreboardType.ENDING, players, arena);
+                    if (arena.getArenaStatus() == ArenaStatus.ENDING) {
+                        for (Player players : arena.getPlayers()) {
+                            Scoreboard.changeScoreboard(ScoreboardType.ENDING, players, arena);
+                        }
                     }
-                    continue;
+                } else {
+                    Scoreboard.changeScoreboard(ScoreboardType.LOBBY, player, null);
                 }
-                if (ArenaManager.getArenaManager().getArena(player) != null) continue;
-                Scoreboard.changeScoreboard(ScoreboardType.LOBBY, player, null);
             }
         }, 0L, update);
     }
