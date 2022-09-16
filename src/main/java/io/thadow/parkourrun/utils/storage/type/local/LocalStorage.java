@@ -3,6 +3,8 @@ package io.thadow.parkourrun.utils.storage.type.local;
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.data.PlayerData;
 import io.thadow.parkourrun.managers.PlayerDataManager;
+import io.thadow.parkourrun.utils.debug.Debugger;
+import io.thadow.parkourrun.utils.debug.type.DebugType;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -45,6 +47,7 @@ public class LocalStorage {
                 exception.printStackTrace();
             }
         }
+        Bukkit.getConsoleSender().sendMessage("&aLocalStorage enabled");
     }
 
     public static void save() {
@@ -122,10 +125,6 @@ public class LocalStorage {
             String player_name = get().getString("Players." + uuid + ".Name");
             int wins = get().getInt("Players." + uuid + ".Wins");
             int loses = get().getInt("Players." + uuid + ".Loses");
-            Bukkit.getConsoleSender().sendMessage("Player Found: " + player_name);
-            Bukkit.getConsoleSender().sendMessage("UUID: " + uuid);
-            Bukkit.getConsoleSender().sendMessage("Wins: " + wins);
-            Bukkit.getConsoleSender().sendMessage("Loses: " + loses);
             players.add(new PlayerData(player_name, uuid, wins, loses));
         }
         return players;

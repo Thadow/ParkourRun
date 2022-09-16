@@ -2,18 +2,21 @@ package io.thadow.parkourrun.utils.storage.type.mysql;
 
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.data.PlayerData;
+import io.thadow.parkourrun.utils.debug.Debugger;
+import io.thadow.parkourrun.utils.debug.type.DebugType;
 import org.bukkit.Bukkit;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MySQLStorage {
 
     public static void createTable() {
         try {
-            PreparedStatement statement = MySQLConntection.getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS parkourrun_data (`UUID` varchar(200), `PLAYER_NAME` varchar(50), `WINS` INT(5), `LOSES` INT(5))");
+            PreparedStatement statement = MySQLConntection.getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS pkr_data (`UUID` varchar(200), `PLAYER_NAME` varchar(50), `WINS` INT(5), `LOSES` INT(5))");
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -23,17 +26,13 @@ public class MySQLStorage {
     public static ArrayList<PlayerData> getPlayers() {
         ArrayList<PlayerData> players = new ArrayList<>();
         try {
-            PreparedStatement statement = MySQLConntection.getConnection().prepareStatement("SELECT * FROM parkourrun_data");
+            PreparedStatement statement = MySQLConntection.getConnection().prepareStatement("SELECT * FROM pkr_data");
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 String uuid = resultSet.getString("UUID");
                 int wins = resultSet.getInt("WINS");
                 int loses = resultSet.getInt("LOSES");
                 String name = resultSet.getString("PLAYER_NAME");
-                Bukkit.getConsoleSender().sendMessage("Player Found: " + name);
-                Bukkit.getConsoleSender().sendMessage("UUID: " + uuid);
-                Bukkit.getConsoleSender().sendMessage("Wins: " + wins);
-                Bukkit.getConsoleSender().sendMessage("Loses: " + loses);
                 players.add(new PlayerData(name, uuid, wins, loses));
             }
         } catch (SQLException e) {
@@ -49,7 +48,7 @@ public class MySQLStorage {
             String uuid = "";
             boolean found = false;
             try {
-                PreparedStatement statement = MySQLConntection.getConnection().prepareStatement("SELECT * FROM parkourrun_data WHERE player_name=?");
+                PreparedStatement statement = MySQLConntection.getConnection().prepareStatement("SELECT * FROM pkr_data WHERE uuid=?");
                 statement.setString(1, name);
                 ResultSet resultado = statement.executeQuery();
                 if (resultado.next()) {
@@ -70,15 +69,29 @@ public class MySQLStorage {
         });
     }
 
-    public static void createPlayer(String name, String uuid) {
+    public static boolean containsPlayer(String uuid) {
+        try {
+            String query = "SELECT * FROM pkr_data WHERE (uuid=?)";
+            PreparedStatement statement = MySQLConntection.getConnection().prepareStatement(query);
+            statement.setString(1, uuid);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next())
+                return true;
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+        return false;
+    }
+
+    public static void createPlayer(String name, String uuid, int wins, int loses) {
         Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
             try {
                 PreparedStatement insert = MySQLConntection.getConnection()
-                        .prepareStatement("INSERT INTO parkourrun_data (UUID,PLAYER_NAME,WINS,LOSES) VALUE (?,?,?,?)");
+                        .prepareStatement("INSERT INTO pkr_data (UUID,PLAYER_NAME,WINS,LOSES) VALUE (?,?,?,?)");
                 insert.setString(1, uuid);
                 insert.setString(2, name);
-                insert.setInt(3, 0);
-                insert.setInt(4, 0);
+                insert.setInt(3, wins);
+                insert.setInt(4, loses);
                 insert.executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -93,7 +106,7 @@ public class MySQLStorage {
         final int loses = playerData.getLoses();
         Bukkit.getScheduler().runTaskAsynchronously(Main.getInstance(), () -> {
             try {
-                PreparedStatement statement = MySQLConntection.getConnection().prepareStatement("UPDATE parkourrun_data SET player_name=?, wins=?, loses=? WHERE (uuid=?)");
+                PreparedStatement statement = MySQLConntection.getConnection().prepareStatement("UPDATE pkr_data SET player_name=?, wins=?, loses=? WHERE (uuid=?)");
                 statement.setString(1, name);
                 statement.setInt(2, wins);
                 statement.setInt(3, loses);

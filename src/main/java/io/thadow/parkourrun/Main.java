@@ -17,6 +17,7 @@ import io.thadow.parkourrun.utils.lib.scoreboard.Scoreboard;
 import io.thadow.parkourrun.utils.storage.Storage;
 import io.thadow.parkourrun.utils.storage.StorageType;
 import io.thadow.parkourrun.utils.storage.type.mysql.MySQLConntection;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -44,6 +45,13 @@ public class Main extends JavaPlugin {
         getCommand("leave").setExecutor(new LeaveCommand());
         registerListeners(new ArenaListener(), new PlayerListener());
         Scoreboard.run();
+        if (getConfiguration().getString("Configuration.StorageType").equals("TRANSFORM")) {
+            String from = getConfiguration().getString("Configuration.Transform.From");
+            String to = getConfiguration().getString("Configuration.Transform.To");
+            Bukkit.getConsoleSender().sendMessage("&aTransforming data!");
+            PlayerDataManager.getPlayerDataManager().transformData(from, to);
+            return;
+        }
         if (getConfiguration().getString("Configuration.StorageType").equals("MySQL")) {
             Storage.getStorage().setupStorage(StorageType.MySQL);
         } else {

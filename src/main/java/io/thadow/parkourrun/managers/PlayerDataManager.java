@@ -33,7 +33,13 @@ public class PlayerDataManager {
         if (Main.isMySQLEnabled()) {
             return;
         }
-        LocalStorage.savePlayers();
+        if (Storage.getStorage().getStorageType() == StorageType.LOCAL) {
+            LocalStorage.savePlayers();
+        }
+    }
+
+    public void transformData(String from, String to) {
+        Storage.getStorage().transformData(from, to);
     }
 
     public void addPlayerData(PlayerData playerData) {
