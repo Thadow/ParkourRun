@@ -3,6 +3,8 @@ package io.thadow.parkourrun.arena;
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.CooldownManager;
+import io.thadow.parkourrun.managers.PlayerDataManager;
+import io.thadow.parkourrun.utils.configurations.ArenasConfiguration;
 import io.thadow.parkourrun.utils.lib.scoreboard.ScoreboardType;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
@@ -394,6 +396,11 @@ public class Arena {
             broadcast(message);
         }
         if (getArenaStatus() == ArenaStatus.PLAYING) {
+            if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Lose.Add Lose On Disconnect/Leave")) {
+                Storage.getStorage().addLose(player);
+            }
+        }
+        if (getArenaStatus() == ArenaStatus.PLAYING) {
             String message = MessagesConfiguration.getPath("Messages.Arena.Player Leave In Game");
             message = Utils.replace(message, "%player%", player.getName());
             message = Utils.replace(message, "%current%", String.valueOf(getPlayers().size()));
@@ -411,6 +418,10 @@ public class Arena {
             setMaxTime(getDefMaxTime());
             return;
         }
+        if (getPlayers().size() == 1 && ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Win.Last Player Wins")) {
+            finalizeArenaWithWinner(getPlayers().get(0));
+            return;
+        }
         if (getArenaStatus() == ArenaStatus.WAITING || getArenaStatus() == ArenaStatus.STARTING) {
             checkArena();
         }
@@ -418,6 +429,11 @@ public class Arena {
 
     public void removePlayerSilent(Player player) {
         players.remove(player);
+        if (getArenaStatus() == ArenaStatus.PLAYING) {
+            if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Lose.Add Lose On Disconnect/Leave")) {
+                Storage.getStorage().addLose(player);
+            }
+        }
         if (getPlayers().size() == 0 && getArenaStatus() == ArenaStatus.PLAYING) {
             finalizeArena(false);
             return;
@@ -426,6 +442,10 @@ public class Arena {
             setArenaStatus(ArenaStatus.WAITING);
             setTime(getDefTime());
             setMaxTime(getDefMaxTime());
+            return;
+        }
+        if (getPlayers().size() == 1 && ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Win.Last Player Wins")) {
+            finalizeArenaWithWinner(getPlayers().get(0));
             return;
         }
         if (getArenaStatus() == ArenaStatus.WAITING || getArenaStatus() == ArenaStatus.STARTING) {
@@ -498,14 +518,26 @@ public class Arena {
     }
 
     public void finalizeArena(boolean closingServer) {
+        if (closingServer) {
+            teleportSpawn(true);
+            return;
+        }
         List<String> messages = MessagesConfiguration.getListPath("Messages.Arena.Tie.Message");
         for (String message : messages) {
-            if (!closingServer) {
                 message = Utils.format(message);
                 broadcast(message);
+        }
+        if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Lose.Add Lose On Tie")) {
+            for (Player players : getPlayers()) {
+                Storage.getStorage().addLose(players);
             }
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Tie.Titles.Enabled") && !closingServer) {
+        if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Win.Add Win On Tie")) {
+            for (Player players : getPlayers()) {
+                Storage.getStorage().addWin(players);
+            }
+        }
+        if (MessagesConfiguration.getBoolean("Messages.Arena.Tie.Titles.Enabled")) {
             int fadeIn = MessagesConfiguration.getInt("Messages.Arena.Tie.Titles.Fade In");
             int fadeOut = MessagesConfiguration.getInt("Messages.Arena.Tie.Titles.Fade Out");
             int stay = MessagesConfiguration.getInt("Messages.Arena.Tie.Titles.Stay");
@@ -515,15 +547,11 @@ public class Arena {
                 Titles.sendTitle(players, fadeIn, stay, fadeOut, Utils.colorize(title), Utils.colorize(subTitle));
             }
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Tie.Sound.Enabled") && !closingServer) {
+        if (MessagesConfiguration.getBoolean("Messages.Arena.Tie.Sound.Enabled")) {
             String soundPath = MessagesConfiguration.getPath("Messages.Arena.Tie.Sound.Sound");
             for (Player players : getPlayers()) {
                 Utils.playSound(players, soundPath);
             }
-        }
-        if (closingServer) {
-            teleportSpawn(false);
-            return;
         }
         setArenaStatus(ArenaStatus.ENDING);
         Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaName + " ha sido finalizada");
@@ -625,8 +653,8 @@ public class Arena {
             getPlayers().clear();
             return;
         }
-        setArenaStatus(ArenaStatus.WAITING);
         getPlayers().clear();
+        setArenaStatus(ArenaStatus.WAITING);
     }
 
     public void cancel(int taskID) {

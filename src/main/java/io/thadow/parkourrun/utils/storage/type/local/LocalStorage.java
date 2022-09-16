@@ -53,7 +53,6 @@ public class LocalStorage {
         } catch (IOException | NullPointerException exception) {
             exception.printStackTrace();
         }
-        reload();
     }
 
     public static void createPlayerData(Player player) {
@@ -75,10 +74,7 @@ public class LocalStorage {
 
     public static boolean containsPlayer(Player player) {
         String uuid = player.getUniqueId().toString();
-        if (get().contains("Players." + uuid + ".Name")) {
-            return true;
-        }
-        return false;
+        return get().contains("Players." + uuid + ".Name");
     }
 
     public static Integer getWins(Player player) {
@@ -119,7 +115,7 @@ public class LocalStorage {
 
     public static ArrayList<PlayerData> getPlayers() {
         ArrayList<PlayerData> players = new ArrayList<>();
-        if (get().getConfigurationSection("Players").getKeys(false) == null) {
+        if (get().getConfigurationSection("Players") == null) {
             return players;
         }
         for (String uuid : get().getConfigurationSection("Players").getKeys(false)) {
@@ -136,6 +132,8 @@ public class LocalStorage {
     }
 
     public static void savePlayers() {
+        if (PlayerDataManager.getPlayerDataManager().getPlayers() == null)
+            return;
         for (PlayerData playerData : PlayerDataManager.getPlayerDataManager().getPlayers()) {
             String uuid = playerData.getUUID();
             String player_name = playerData.getPlayer();

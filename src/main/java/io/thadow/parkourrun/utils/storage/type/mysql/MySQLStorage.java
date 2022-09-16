@@ -2,9 +2,7 @@ package io.thadow.parkourrun.utils.storage.type.mysql;
 
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.data.PlayerData;
-import io.thadow.parkourrun.managers.PlayerDataManager;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

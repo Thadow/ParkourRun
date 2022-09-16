@@ -68,6 +68,14 @@ public class ArenasConfiguration {
             return false;
         }
         getConfiguration().set("Arenas." + arenaID + ".Enabled", false);
+        getConfiguration().set("Arenas." + arenaID + ".Extensions.Checkpoints.Need All To Win", true);
+        getConfiguration().set("Arenas." + arenaID + ".Extensions.Damage.Disable Fall Damage", true);
+        getConfiguration().set("Arenas." + arenaID + ".Extensions.Damage.Disable Player Damage", true);
+        getConfiguration().set("Arenas." + arenaID + ".Extensions.Damage.Disable Monster Damage", true);
+        getConfiguration().set("Arenas." + arenaID + ".Extensions.Lose.Add Lose On Disconnect/Leave", true);
+        getConfiguration().set("Arenas." + arenaID + ".Extensions.Lose.Add Lose On Tie", false);
+        getConfiguration().set("Arenas." + arenaID + ".Extensions.Win.Add Win On Tie", false);
+        getConfiguration().set("Arenas." + arenaID + ".Extensions.Win.Last Player Wins", true);
         getConfiguration().set("Arenas." + arenaID + ".Arena Name", arenaName);
         getConfiguration().set("Arenas." + arenaID + ".Wait Time To Start", 30);
         getConfiguration().set("Arenas." + arenaID + ".Wait Time To Re-Enable", 5);

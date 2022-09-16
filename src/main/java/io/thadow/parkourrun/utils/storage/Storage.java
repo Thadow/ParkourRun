@@ -73,16 +73,12 @@ public class Storage {
             String database = Main.getConfiguration().getString("Configuration.MySQL.Database");
             String username = Main.getConfiguration().getString("Configuration.MySQL.Username");
             String password = Main.getConfiguration().getString("Configuration.MySQL.Password");
+            boolean useSSL = Main.getConfiguration().getBoolean("Configuration.MySQL.SSL");
             MySQLConntection mySQLConntection = new MySQLConntection();
-            mySQLConntection.setup(host, port, database, username, password);
+            mySQLConntection.setup(host, port, database, username, password, useSSL);
         }
     }
 
-    public void save() {
-        if (getStorageType() == StorageType.LOCAL) {
-            LocalStorage.savePlayers();
-        }
-    }
 
     public StorageType getStorageType() {
         return type;

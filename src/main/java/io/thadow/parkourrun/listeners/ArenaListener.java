@@ -7,6 +7,7 @@ import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.managers.CheckpointManager;
 import io.thadow.parkourrun.utils.Region;
 import io.thadow.parkourrun.utils.Utils;
+import io.thadow.parkourrun.utils.configurations.ArenasConfiguration;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,6 +26,9 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.util.Vector;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ArenaListener implements Listener {
 
     @EventHandler
@@ -40,7 +44,17 @@ public class ArenaListener implements Listener {
             Region winRegion = new Region(new Vector(Integer.parseInt(winCorner1[0]), Integer.parseInt(winCorner1[1]), Integer.parseInt(winCorner1[2])),
                     new Vector(Integer.parseInt(winCorner2[0]), Integer.parseInt(winCorner2[1]), Integer.parseInt(winCorner2[2])));
             if (winRegion.isInside(player.getLocation())) {
-                arena.finalizeArenaWithWinner(player);
+                String arenaID = arena.getArenaName();
+                if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaID + ".Extensions.Checkpoints.Need All To Win")) {
+                    int lastCheckpoint = CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena);
+                    int currentPlayerCheckpoint = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);
+                    Map<Player, Integer> integerMap = new HashMap<>();
+                    if (currentPlayerCheckpoint == lastCheckpoint) {
+                        arena.finalizeArenaWithWinner(player);
+                    }
+                } else {
+                    arena.finalizeArenaWithWinner(player);
+                }
             }
         }
     }
@@ -55,10 +69,18 @@ public class ArenaListener implements Listener {
             Region arenaRegion = new Region(new Vector(Integer.parseInt(arenaZoneCorner1[0]), Integer.parseInt(arenaZoneCorner1[1]), Integer.parseInt(arenaZoneCorner1[2])),
                     new Vector(Integer.parseInt(arenaZoneCorner2[0]), Integer.parseInt(arenaZoneCorner2[1]), Integer.parseInt(arenaZoneCorner2[2])));
             if (!arenaRegion.isInside(player.getLocation())) {
-                if (arena.getArenaStatus() == ArenaStatus.PLAYING || arena.getArenaStatus() == ArenaStatus.ENDING) {
-                    player.teleport(arena.getSpawn());
-                } else {
+                if (arena.getArenaStatus() == ArenaStatus.PLAYING) {
+                    int currentCheckpointID = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);
+                    if (currentCheckpointID == 0) {
+                        player.teleport(arena.getSpawn());
+                        return;
+                    }
+                    Location location = CheckpointManager.getCheckpointManager().getCheckpointLocation(arena, currentCheckpointID);
+                    player.teleport(location);
+                } else if (arena.getArenaStatus() == ArenaStatus.WAITING || arena.getArenaStatus() == ArenaStatus.STARTING) {
                     player.teleport(arena.getWaitLocation());
+                } else if (arena.getArenaStatus() == ArenaStatus.ENDING) {
+                    player.teleport(arena.getSpawn());
                 }
             }
         }
@@ -134,11 +156,13 @@ public class ArenaListener implements Listener {
     @EventHandler
     public void onPlayerFallDamage(EntityDamageEvent event) {
         if (event.getEntity() instanceof Player) {
-            if (Main.getConfiguration().getBoolean("Configuration.Arenas.Disable Fall Damage")
-            && event.getCause() == EntityDamageEvent.DamageCause.FALL) {
-                Player player = (Player) event.getEntity();
-                if (ArenaManager.getArenaManager().getArena(player) != null) {
-                    event.setCancelled(true);
+            if (event.getCause() == EntityDamageEvent.DamageCause.FALL) {
+                Arena arena = ArenaManager.getArenaManager().getArena((Player) event.getEntity());
+                if (arena != null) {
+                    String arenaID = arena.getArenaName();
+                    if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaID + ".Extensions.Damage.Disable Fall Damage")) {
+                        event.setCancelled(true);
+                    }
                 }
             }
         }
@@ -149,8 +173,12 @@ public class ArenaListener implements Listener {
         if (event.getEntity() instanceof Player) {
             if (event.getCause() != EntityDamageEvent.DamageCause.FALL) {
                 Player player = (Player) event.getEntity();
-                if (ArenaManager.getArenaManager().getArena(player) != null) {
-                    event.setCancelled(true);
+                Arena arena = ArenaManager.getArenaManager().getArena(player);
+                if (arena != null) {
+                    String arenaID = arena.getArenaName();
+                    if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaID + ".Extensions.Damage.Disable Player Damage")) {
+                        event.setCancelled(true);
+                    }
                 }
             }
         }
@@ -160,8 +188,12 @@ public class ArenaListener implements Listener {
     public void onPlayerDamageByEntity(EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
-            if (ArenaManager.getArenaManager().getArena(player) != null) {
-                event.setCancelled(true);
+            Arena arena = ArenaManager.getArenaManager().getArena(player);
+            if (arena != null) {
+                String arenaID = arena.getArenaName();
+                if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaID + ".Extensions.Damage.Disable Monster Damage")) {
+                    event.setCancelled(true);
+                }
             }
         }
     }

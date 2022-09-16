@@ -67,7 +67,7 @@ public class CheckpointManager {
         final double checkpointZ = Double.parseDouble(location[3]);
         final float checkpointPitch = Float.parseFloat(location[4]);
         final float checkpointYaw = Float.parseFloat(location[5]);
-        return new Location(Bukkit.getWorld(location[0]), checkpointX, checkpointY, checkpointZ, checkpointPitch, checkpointYaw);
+        return new Location(Bukkit.getWorld(location[0]), checkpointX, checkpointY, checkpointZ, checkpointYaw, checkpointPitch);
     }
 
     static {

@@ -3,7 +3,6 @@ package io.thadow.parkourrun;
 import io.thadow.parkourrun.api.PAPIExpansion;
 import io.thadow.parkourrun.api.ParkourRunAPI;
 import io.thadow.parkourrun.arena.Arena;
-import io.thadow.parkourrun.data.PlayerData;
 import io.thadow.parkourrun.listeners.ArenaListener;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.listeners.PlayerListener;
@@ -29,12 +28,14 @@ import java.util.Arrays;
 public class Main extends JavaPlugin {
     private static Main instance;
     private static boolean mysql = false;
+    private static boolean debug = false;
 
     @Override
     public void onEnable() {
         super.onEnable();
         instance = this;
         saveDefaultConfig();
+        setDebug(getConfiguration().getBoolean("Configuration.Debug"));
         ArenasConfiguration.registerConfiguration();
         MessagesConfiguration.registerConfiguration();
         ScoreboardConfiguration.registerConfiguration();
@@ -43,16 +44,15 @@ public class Main extends JavaPlugin {
         getCommand("leave").setExecutor(new LeaveCommand());
         registerListeners(new ArenaListener(), new PlayerListener());
         Scoreboard.run();
-        if (getConfiguration().getBoolean("Configuration.MySQL.Enabled") && getConfiguration().getString("Configuration.StorageType").equals("MySQL")) {
+        if (getConfiguration().getString("Configuration.StorageType").equals("MySQL")) {
             Storage.getStorage().setupStorage(StorageType.MySQL);
-            mysql = true;
         } else {
             if (getConfiguration().getString("Configuration.StorageType").equals("LOCAL")) {
                 Storage.getStorage().setupStorage(StorageType.LOCAL);
             }
         }
         PlayerDataManager.getPlayerDataManager().loadPlayers();
-        ParkourRunAPI api = new ParkourRunAPI(this);
+        new ParkourRunAPI(this);
         new PAPIExpansion(this).register();
     }
 
@@ -93,5 +93,17 @@ public class Main extends JavaPlugin {
 
     public static boolean isMySQLEnabled() {
         return mysql;
+    }
+
+    public static void setMysql(boolean mysql) {
+        Main.mysql = mysql;
+    }
+
+    public static boolean isDebugEnabled() {
+        return debug;
+    }
+
+    public static void setDebug(boolean debug) {
+        Main.debug = debug;
     }
 }
