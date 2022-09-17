@@ -1,17 +1,13 @@
 package io.thadow.parkourrun.managers;
 
+import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.utils.Utils;
-import io.thadow.parkourrun.utils.configurations.ArenasConfiguration;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.apache.commons.io.FileUtils;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 public class ArenaManager {
     private static final ArenaManager arenaManager = new ArenaManager();
@@ -26,7 +22,7 @@ public class ArenaManager {
 
     public Arena getArena(String arenaName) {
         for (Arena arena : arenas) {
-            if (arena.getArenaName().equals(arenaName)) {
+            if (arena.getArenaID().equals(arenaName)) {
                 return arena;
             }
         }
@@ -55,7 +51,7 @@ public class ArenaManager {
         List<Arena> arenas = Utils.getSorted(getArenas());
 
         for (Arena arena : arenas) {
-            if (addPlayer(player, arena.getArenaName())) {
+            if (addPlayer(player, arena.getArenaID())) {
                 break;
             }
         }
@@ -85,64 +81,45 @@ public class ArenaManager {
     }
 
     public void loadArenas() {
-        if (ArenasConfiguration.getConfiguration().getConfigurationSection("Arenas") == null)
-            return;
-        for (String arena : ArenasConfiguration.getConfiguration().getConfigurationSection("Arenas").getKeys(false)) {
-            String arenaDisplayName = ArenasConfiguration.getConfiguration().getString("Arenas." + arena + ".Arena Name");
-            int minPlayers = ArenasConfiguration.getConfiguration().getInt("Arenas." + arena + ".Min Players");
-            int maxPlayers = ArenasConfiguration.getConfiguration().getInt("Arenas." + arena + ".Max Players");
-            int waitToStartTime = ArenasConfiguration.getConfiguration().getInt("Arenas." + arena + ".Wait Time To Start");
-            int waitToReEnableTime = ArenasConfiguration.getConfiguration().getInt("Arenas." + arena + ".Wait Time To Re-Enable");
-            int maxTime = ArenasConfiguration.getConfiguration().getInt("Arenas." + arena + ".Max Time");
-            String[] spawnLocationSplit = ArenasConfiguration.getConfiguration().getString("Arenas." + arena + ".Spawn Location").split(";");
-            String[] waitLocationSplit = ArenasConfiguration.getConfiguration().getString("Arenas." + arena + ".Wait Location").split(";");
-            String winZoneCorner1 = ArenasConfiguration.getConfiguration().getString("Arenas." + arena + ".Win Zone Corner 1");
-            String winZoneCorner2 = ArenasConfiguration.getConfiguration().getString("Arenas." + arena + ".Win Zone Corner 2");
-            String arenaZoneCorner1 = ArenasConfiguration.getConfiguration().getString("Arenas." + arena + ".Arena Zone Corner 1");
-            String arenaZoneCorner2 = ArenasConfiguration.getConfiguration().getString("Arenas." + arena + ".Arena Zone Corner 2");
-            World spawnWorld = Bukkit.getWorld(spawnLocationSplit[0]);
-            double spawnX = Double.parseDouble(spawnLocationSplit[1]);
-            double spawnY = Double.parseDouble(spawnLocationSplit[2]);
-            double spawnZ = Double.parseDouble(spawnLocationSplit[3]);
-            float spawnYaw = Float.parseFloat(spawnLocationSplit[4]);
-            float spawnPitch = Float.parseFloat(spawnLocationSplit[5]);
-            Location spawnLocation = new Location(spawnWorld, spawnX, spawnY, spawnZ, spawnPitch, spawnYaw);
-            World waitWorld = Bukkit.getWorld(waitLocationSplit[0]);
-            double waitX = Double.parseDouble(waitLocationSplit[1]);
-            double waitY = Double.parseDouble(waitLocationSplit[2]);
-            double waitZ = Double.parseDouble(waitLocationSplit[3]);
-            float waitYaw = Float.parseFloat(waitLocationSplit[4]);
-            float waitPitch = Float.parseFloat(waitLocationSplit[5]);
-            Location waitLocation = new Location(waitWorld, waitX, waitY, waitZ, waitPitch, waitYaw);
-            Map<Integer, String> checkpoints = new HashMap<>();
-            int totalCheckpoints = ArenasConfiguration.getConfiguration().getInt("Arenas." + arena + ".Total Checkpoints");
-            if (ArenasConfiguration.getConfiguration().contains("Arenas." + arena + ".Checkpoints.1")) {
-                for (int checkpoint = 1; checkpoint <= totalCheckpoints; checkpoint++) {
-                    if (ArenasConfiguration.getConfiguration().contains("Arenas." + arena + ".Checkpoints." + checkpoint + ".Location")
-                            && ArenasConfiguration.getConfiguration().contains("Arenas." + arena + ".Checkpoints." + checkpoint + ".Corner 1")
-                            && ArenasConfiguration.getConfiguration().contains("Arenas." + arena + ".Checkpoints." + checkpoint + ".Corner 2")) {
-                        Bukkit.getConsoleSender().sendMessage("ID: " + checkpoint);
-                        String location = "Arenas." + arena + ".Checkpoints." + checkpoint + ".Location";
-                        String corner1 = "Arenas." + arena + ".Checkpoints." + checkpoint + ".Corner 1";
-                        String corner2 = "Arenas." + arena + ".Checkpoints." + checkpoint + ".Corner 2";
-                        String full = ArenasConfiguration.getConfiguration().getString(location) + "/-/" + ArenasConfiguration.getConfiguration().getString(corner1) + "/-/" + ArenasConfiguration.getConfiguration().getString(corner2);
-                        checkpoints.put(checkpoint, full);
-                        Bukkit.getConsoleSender().sendMessage("Checkpoint: " + full);
+        File dir = new File(Main.getInstance().getDataFolder(), "/Arenas");
+        if (dir.exists()) {
+            List<File> files = new ArrayList<>();
+            File[] fls = dir.listFiles();
+            for (File fl : Objects.requireNonNull(fls)) {
+                if (fl.isFile()) {
+                    if (fl.getName().endsWith(".yml")) {
+                        files.add(fl);
                     }
                 }
             }
-            boolean enabled = ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arena + ".Enabled");
-            Arena arenita = new Arena(arena, arenaDisplayName, minPlayers, maxPlayers, spawnLocation, waitLocation, waitToStartTime, waitToReEnableTime, maxTime, winZoneCorner1, winZoneCorner2, arenaZoneCorner1, arenaZoneCorner2, checkpoints, enabled);
-            getArenas().add(arenita);
-            Bukkit.getConsoleSender().sendMessage("-----------------------------------------");
-            Bukkit.getConsoleSender().sendMessage("Arena Encontrada: " + arenaDisplayName);
-            Bukkit.getConsoleSender().sendMessage("Min Players: " + minPlayers);
-            Bukkit.getConsoleSender().sendMessage("Max Players: " + maxPlayers);
-            Bukkit.getConsoleSender().sendMessage("Spawn Location: " + spawnLocation);
-            Bukkit.getConsoleSender().sendMessage("Wait Time To Start: " + waitToStartTime);
-            Bukkit.getConsoleSender().sendMessage("Wait Time To Re-Enable: " + waitToReEnableTime);
-            Bukkit.getConsoleSender().sendMessage("Max Time: " + maxTime);
-            Bukkit.getConsoleSender().sendMessage("-----------------------------------------");
+
+            for (File file : files) {
+                Arena arena = new Arena(file.getName().replace(".yml", ""));
+                arenas.add(arena);
+            }
         }
+    }
+
+    public boolean createArena(Player player, String arenaID) {
+        try {
+            Arena arena = new Arena(arenaID);
+            getArenas().add(arena);
+            return true;
+        }catch (Exception exception) {
+            return false;
+        }
+    }
+
+    public boolean deleteArena(Player player, String arenaID) {
+        File arenaFile = new File(Main.getInstance().getDataFolder(), "/Arenas/" + arenaID + ".yml");
+        if (!arenaFile.exists()) {
+            player.sendMessage("Unknown arena config file");
+            return false;
+        }
+
+        Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+        ArenaManager.getArenaManager().getArenas().remove(arena);
+        FileUtils.deleteQuietly(arenaFile);
+        return true;
     }
 }

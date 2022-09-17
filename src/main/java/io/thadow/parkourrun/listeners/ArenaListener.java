@@ -7,11 +7,10 @@ import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.managers.CheckpointManager;
 import io.thadow.parkourrun.utils.Region;
 import io.thadow.parkourrun.utils.Utils;
-import io.thadow.parkourrun.utils.configurations.ArenasConfiguration;
+import io.thadow.parkourrun.utils.storage.ActionCooldown;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -25,9 +24,6 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.util.Vector;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ArenaListener implements Listener {
 
@@ -44,13 +40,17 @@ public class ArenaListener implements Listener {
             Region winRegion = new Region(new Vector(Integer.parseInt(winCorner1[0]), Integer.parseInt(winCorner1[1]), Integer.parseInt(winCorner1[2])),
                     new Vector(Integer.parseInt(winCorner2[0]), Integer.parseInt(winCorner2[1]), Integer.parseInt(winCorner2[2])));
             if (winRegion.isInside(player.getLocation())) {
-                String arenaID = arena.getArenaName();
-                if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaID + ".Extensions.Checkpoints.Need All To Win")) {
+                String arenaID = arena.getArenaID();
+                if (arena.getConfig().getBoolean("Extensions.Checkpoints.Need All To Win")) {
                     int lastCheckpoint = CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena);
                     int currentPlayerCheckpoint = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);
-                    Map<Player, Integer> integerMap = new HashMap<>();
                     if (currentPlayerCheckpoint == lastCheckpoint) {
                         arena.finalizeArenaWithWinner(player);
+                    } else {
+                        if (ActionCooldown.isOnCooldown("cantWinMessage", player))
+                            return;
+                        player.sendMessage("Necesitas todos los checkpoints para ganar!");
+                        ActionCooldown.addCooldown("cantWinMessage", player, 5);
                     }
                 } else {
                     arena.finalizeArenaWithWinner(player);
@@ -94,8 +94,10 @@ public class ArenaListener implements Listener {
                 return;
             Material clickedBlock = event.getClickedBlock().getType();
             Arena arena = ArenaManager.getArenaManager().getArena(player);
-            if (clickedBlock == Material.GOLD_PLATE) {
-                if (Utils.isNearEmeraldBlock(player, 2)) {
+            String plate = Main.getConfiguration().getString("Configuration.Arenas.Checkpoints.Plate");
+            if (clickedBlock == Material.valueOf(plate)) {
+                String underBlock = Main.getConfiguration().getString("Configuration.Arenas.Checkpoints.Under Block");
+                if (Utils.isNearBlock(player, 2, underBlock)) {
                     int currentCheckpointID = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);
                     if (currentCheckpointID == 0) {
                         String[] corners = arena.getCheckpointCorners(1).split("/-/");
@@ -159,8 +161,7 @@ public class ArenaListener implements Listener {
             if (event.getCause() == EntityDamageEvent.DamageCause.FALL) {
                 Arena arena = ArenaManager.getArenaManager().getArena((Player) event.getEntity());
                 if (arena != null) {
-                    String arenaID = arena.getArenaName();
-                    if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaID + ".Extensions.Damage.Disable Fall Damage")) {
+                    if (arena.getConfig().getBoolean("Extensions.Damage.Disable Fall Damage")) {
                         event.setCancelled(true);
                     }
                 }
@@ -175,8 +176,7 @@ public class ArenaListener implements Listener {
                 Player player = (Player) event.getEntity();
                 Arena arena = ArenaManager.getArenaManager().getArena(player);
                 if (arena != null) {
-                    String arenaID = arena.getArenaName();
-                    if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaID + ".Extensions.Damage.Disable Player Damage")) {
+                    if (arena.getConfig().getBoolean("Extensions.Damage.Disable Player Damage")) {
                         event.setCancelled(true);
                     }
                 }
@@ -190,8 +190,7 @@ public class ArenaListener implements Listener {
             Player player = (Player) event.getEntity();
             Arena arena = ArenaManager.getArenaManager().getArena(player);
             if (arena != null) {
-                String arenaID = arena.getArenaName();
-                if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaID + ".Extensions.Damage.Disable Monster Damage")) {
+                if (arena.getConfig().getBoolean("Extensions.Damage.Disable Monster Damage")) {
                     event.setCancelled(true);
                 }
             }
@@ -262,7 +261,7 @@ public class ArenaListener implements Listener {
                     if (arenap == null) {
                         event.getRecipients().remove(players);
                     } else {
-                        if (!arenap.getArenaName().equals(arena.getArenaName())) {
+                        if (!arenap.getArenaID().equals(arena.getArenaID())) {
                             event.getRecipients().remove(players);
                         }
                     }

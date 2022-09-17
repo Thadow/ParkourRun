@@ -150,6 +150,7 @@ Messages:
         Enabled: true
         Sound: NOTE_PLING;10;10
   Commands:
+    Invalid Number: "&cNumero Invalido!"
     Main Command:
       Usages:
         - "&m&e---------------------------------"

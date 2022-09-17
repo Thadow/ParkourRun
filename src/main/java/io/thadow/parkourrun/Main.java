@@ -10,10 +10,10 @@ import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.commands.LeaveCommand;
 import io.thadow.parkourrun.commands.ParkourRunCommand;
 import io.thadow.parkourrun.managers.PlayerDataManager;
-import io.thadow.parkourrun.utils.configurations.ArenasConfiguration;
 import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
 import io.thadow.parkourrun.utils.configurations.ScoreboardConfiguration;
 import io.thadow.parkourrun.utils.lib.scoreboard.Scoreboard;
+import io.thadow.parkourrun.utils.storage.ActionCooldown;
 import io.thadow.parkourrun.utils.storage.Storage;
 import io.thadow.parkourrun.utils.storage.StorageType;
 import io.thadow.parkourrun.utils.storage.type.mysql.MySQLConntection;
@@ -37,14 +37,14 @@ public class Main extends JavaPlugin {
         instance = this;
         saveDefaultConfig();
         setDebug(getConfiguration().getBoolean("Configuration.Debug"));
-        ArenasConfiguration.registerConfiguration();
         MessagesConfiguration.registerConfiguration();
         ScoreboardConfiguration.registerConfiguration();
-        ArenaManager.getArenaManager().loadArenas();
         getCommand("parkourrun").setExecutor(new ParkourRunCommand());
         getCommand("leave").setExecutor(new LeaveCommand());
         registerListeners(new ArenaListener(), new PlayerListener());
         Scoreboard.run();
+        ArenaManager.getArenaManager().loadArenas();
+        ActionCooldown.createCooldown("cantWinMessage", 5);
         if (getConfiguration().getString("Configuration.StorageType").equals("TRANSFORM")) {
             String from = getConfiguration().getString("Configuration.Transform.From");
             String to = getConfiguration().getString("Configuration.Transform.To");

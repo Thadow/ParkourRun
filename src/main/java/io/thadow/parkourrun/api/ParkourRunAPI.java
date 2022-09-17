@@ -42,7 +42,7 @@ public class ParkourRunAPI {
     public static String getPlayerArenaID(Player player) {
         Arena arena = ArenaManager.getArenaManager().getArena(player);
         if (arena != null) {
-            return arena.getArenaName();
+            return arena.getArenaID();
         } else {
             return "Unknown Arena";
         }

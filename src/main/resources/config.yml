@@ -13,3 +13,6 @@ Configuration:
     SSL: false
   Arenas:
     Per Arena Chat: true
+    Checkpoints:
+      Under Block: EMERALD_BLOCK
+      Plate: GOLD_PLATE

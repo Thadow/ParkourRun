@@ -3,17 +3,13 @@ package io.thadow.parkourrun.arena;
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.CooldownManager;
-import io.thadow.parkourrun.managers.PlayerDataManager;
-import io.thadow.parkourrun.utils.configurations.ArenasConfiguration;
-import io.thadow.parkourrun.utils.lib.scoreboard.ScoreboardType;
+import io.thadow.parkourrun.utils.configurations.ArenaConfig;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
 import io.thadow.parkourrun.utils.lib.titles.Titles;
 import io.thadow.parkourrun.utils.storage.Storage;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.FireworkEffect;
-import org.bukkit.Location;
+import org.bukkit.*;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
@@ -30,19 +26,21 @@ public class Arena {
     private String winCorner1, winCorner2;
     private String arenaCorner1, arenaCorner2;
     private boolean enabled;
-    private String arenaName;
+    private String arenaID;
     private String arenaDisplayName;
     private int maxTime, time, defTime, defMaxTime;
     private int minPlayers, maxPlayers;
     private Location spawn, waitLocation;
     private int reEnableCount;
     private ArenaStatus arenaStatus = ArenaStatus.WAITING;
-    private ScoreboardType scoreboardType = ScoreboardType.WAITING;
     private final List<Player> players = new ArrayList<>();
     private int fireworksTaskID;
     private Map<Integer, String> checkpoints;
-    private Map<Player, Integer> currentPlayerCheckpoint = new HashMap<>();
-    private Map<Player, Integer> nextPlayerCheckpoint = new HashMap<>();
+    private final Map<Player, Integer> currentPlayerCheckpoint = new HashMap<>();
+    private final Map<Player, Integer> nextPlayerCheckpoint = new HashMap<>();
+
+    private final YamlConfiguration configuration;
+    private final ArenaConfig arenaConfig;
 
     public String getCheckpointCorners(Integer id) {
         return checkpoints.get(id);
@@ -70,24 +68,69 @@ public class Arena {
         nextPlayerCheckpoint.put(player, id);
     }
 
-    public Arena(String arenaName, String arenaDisplayName, int minPlayers, int maxPlayers, Location spawn, Location waitLocation, int waiToStartTime, int waitToReEnableTime, int maxTime, String winCorner1, String winCorner2, String arenaCorner1, String arenaCorner2, Map<Integer, String> checkpoints, boolean enabled) {
-        this.arenaName = arenaName;
-        this.arenaDisplayName = arenaDisplayName;
-        this.minPlayers = minPlayers;
-        this.maxPlayers = maxPlayers;
-        this.spawn = spawn;
-        this.waitLocation = waitLocation;
-        this.time = waiToStartTime;
-        this.defTime = waiToStartTime;
-        this.reEnableCount = waitToReEnableTime;
-        this.maxTime = maxTime;
-        this.defMaxTime = maxTime;
-        this.winCorner1 = winCorner1;
-        this.winCorner2 = winCorner2;
-        this.arenaCorner1 = arenaCorner1;
-        this.arenaCorner2 = arenaCorner2;
-        this.checkpoints = checkpoints;
-        this.enabled = enabled;
+    public Arena(String arenaID) {
+        this.arenaID = arenaID;
+
+        arenaConfig = new ArenaConfig(arenaID, Main.getInstance().getDataFolder() + "/Arenas");
+        configuration = arenaConfig.getConfiguration();
+
+        arenaDisplayName = configuration.getString("Arena Name");
+        minPlayers = configuration.getInt("Min Players");
+        maxPlayers = configuration.getInt("Max Players");
+
+        World spawnWorld;
+        double spawnX, spawnY, spawnZ;
+        float spawnYaw, spawnPitch;
+        String[] spawnLocationSplit = configuration.getString("Spawn Location").split(";");
+        spawnWorld = Bukkit.getWorld(spawnLocationSplit[0]);
+        spawnX = Double.parseDouble(spawnLocationSplit[1]);
+        spawnY = Double.parseDouble(spawnLocationSplit[2]);
+        spawnZ = Double.parseDouble(spawnLocationSplit[3]);
+        spawnYaw = Float.parseFloat(spawnLocationSplit[4]);
+        spawnPitch = Float.parseFloat(spawnLocationSplit[5]);
+        spawn = new Location(spawnWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch);
+
+        World waitWorld;
+        double waitX, waitY, waitZ;
+        float waitYaw, waitPitch;
+        String[] waitLocationSplit = configuration.getString("Wait Location").split(";");
+        waitWorld = Bukkit.getWorld(waitLocationSplit[0]);
+        waitX = Double.parseDouble(waitLocationSplit[1]);
+        waitY = Double.parseDouble(waitLocationSplit[2]);
+        waitZ = Double.parseDouble(waitLocationSplit[3]);
+        waitYaw = Float.parseFloat(waitLocationSplit[4]);
+        waitPitch = Float.parseFloat(waitLocationSplit[5]);
+        waitLocation = new Location(waitWorld, waitX, waitY, waitZ, waitYaw, waitPitch);
+
+        time = configuration.getInt("Wait Time To Start");
+        defTime = time;
+
+        reEnableCount = configuration.getInt("Wait Time To Re-Enable");
+
+        maxTime = configuration.getInt("Max Time");
+        defMaxTime = maxTime;
+
+        winCorner1 = configuration.getString("Win Zone Corner 1");
+        winCorner2 = configuration.getString("Win Zone Corner 2");
+
+        arenaCorner1 = configuration.getString("Arena Zone Corner 1");
+        arenaCorner2 = configuration.getString("Arena Zone Corner 2");
+
+        int totalCheckpoints = configuration.getInt("Total Checkpoints");
+        Map<Integer, String> checkpoints = new HashMap<>();
+        if (configuration.contains("Checkpoints.1")) {
+            for (int checkpoint = 1; checkpoint <= totalCheckpoints; checkpoint++) {
+                String location = "Checkpoints." + checkpoint + ".Location";
+                String corner1 = "Checkpoints." + checkpoint + ".Corner 1";
+                String corner2 = "Checkpoints." + checkpoint + ".Corner 2";
+                String full = configuration.getString(location) + "/-/" + configuration.getString(corner1) + "/-/" + configuration.getString(corner2);
+                checkpoints.put(checkpoint, full);
+                Bukkit.getConsoleSender().sendMessage("Checkpoint: " + checkpoint);
+            }
+            this.checkpoints = checkpoints;
+        }
+
+        enabled = configuration.getBoolean("Enabled");
     }
 
     public String getWinCorner1() {
@@ -100,10 +143,14 @@ public class Arena {
 
     public void setWinCorner1(String corner1) {
         this.winCorner1 = corner1;
+        arenaConfig.set("Win Zone Corner 1", corner1);
+        arenaConfig.save();
     }
 
     public void setWinCorner2(String corner2) {
         this.winCorner2 = corner2;
+        arenaConfig.set("Win Zone Corner 2", corner2);
+        arenaConfig.save();
     }
 
     public String getArenaCorner1() {
@@ -112,22 +159,55 @@ public class Arena {
 
     public void setArenaCorner1(String arenaCorner1) {
         this.arenaCorner1 = arenaCorner1;
+        arenaConfig.set("Arena Zone Corner 1", arenaCorner1);
+        arenaConfig.save();
     }
 
     public void setArenaCorner2(String arenaCorner2) {
         this.arenaCorner2 = arenaCorner2;
+        arenaConfig.set("Arena Zone Corner 2", arenaCorner2);
+        arenaConfig.save();
+    }
+
+    public void addCheckpoint(int id, String location) {
+        getCheckpoints().put(id, location);
+        String[] locationSplit = location.split("/-/");
+        arenaConfig.set("Checkpoints." + id + ".Corner 1", locationSplit[1]);
+        arenaConfig.set("Checkpoints." + id + ".Corner 2", locationSplit[2]);
+        arenaConfig.set("Checkpoints." + id + ".Location", locationSplit[0]);
+        arenaConfig.save();
+    }
+
+    public void deleteCheckpoint(int id) {
+        getCheckpoints().remove(id);
+        arenaConfig.set("Checkpoints." + id + ".Location", null);
+        arenaConfig.set("Checkpoints." + id + ".Corner 2", null);
+        arenaConfig.set("Checkpoints." + id + ".Corner 1", null);
+        arenaConfig.set("Checkpoints." + id, null);
+        arenaConfig.set("Total Checkpoints", id - 1);
+    }
+
+    public boolean configContains(String path) {
+        return configuration.contains(path);
+    }
+
+    public YamlConfiguration getConfig() {
+        return arenaConfig.getConfiguration();
     }
 
     public String getArenaCorner2() {
         return arenaCorner2;
     }
 
-    public void setArenaName(String arenaName) {
-        this.arenaName = arenaName;
+    public void setArenaID(String arenaID) {
+        this.arenaID = arenaID;
     }
 
     public void setTime(int time) {
         this.time = time;
+        setDefTime(time);
+        arenaConfig.set("Wait Time To Start", time);
+        arenaConfig.save();
     }
 
     public int getDefTime() {
@@ -148,10 +228,15 @@ public class Arena {
 
     public void setReEnableCount(int reEnableCount) {
         this.reEnableCount = reEnableCount;
+        arenaConfig.set("Wait Time To Re-Enable", reEnableCount);
+        arenaConfig.save();
     }
 
     public void setMaxTime(int maxTime) {
         this.maxTime = maxTime;
+        setDefMaxTime(maxTime);
+        arenaConfig.set("Max Time", maxTime);
+        arenaConfig.save();
     }
 
     public int getMaxTime() {
@@ -174,8 +259,8 @@ public class Arena {
         time++;
     }
 
-    public String getArenaName() {
-        return arenaName;
+    public String getArenaID() {
+        return arenaID;
     }
 
     public String getArenaDisplayName() {
@@ -184,10 +269,14 @@ public class Arena {
 
     public void setArenaDisplayName(String arenaDisplayName) {
         this.arenaDisplayName = arenaDisplayName;
+        arenaConfig.set("Arena Name", arenaDisplayName);
+        arenaConfig.save();
     }
 
     public void setMinPlayers(int minPlayers) {
         this.minPlayers = minPlayers;
+        arenaConfig.set("Min Players", minPlayers);
+        arenaConfig.save();
     }
 
     public int getMinPlayers() {
@@ -196,14 +285,18 @@ public class Arena {
 
     public void setMaxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
+        arenaConfig.set("Max Players", maxPlayers);
+        arenaConfig.save();
     }
 
     public int getMaxPlayers() {
         return maxPlayers;
     }
 
-    public void setSpawn(Location spawn) {
+    public void setSpawn(Location spawn, String locationString) {
         this.spawn = spawn;
+        arenaConfig.set("Location Spawn", locationString);
+        arenaConfig.save();
     }
 
     public Location getSpawn() {
@@ -214,8 +307,10 @@ public class Arena {
         return waitLocation;
     }
 
-    public void setWaitLocation(Location waitLocation) {
+    public void setWaitLocation(Location waitLocation, String waitLocationString) {
         this.waitLocation = waitLocation;
+        arenaConfig.set("Wait Location", waitLocationString);
+        arenaConfig.save();
     }
 
     public void setArenaStatus(ArenaStatus arenaStatus) {
@@ -224,14 +319,6 @@ public class Arena {
 
     public ArenaStatus getArenaStatus() {
         return arenaStatus;
-    }
-
-    public void setScoreboardType(ScoreboardType scoreboardType) {
-        this.scoreboardType = scoreboardType;
-    }
-
-    public ScoreboardType getScoreboardType() {
-        return scoreboardType;
     }
 
     public List<Player> getPlayers() {
@@ -256,114 +343,114 @@ public class Arena {
 
 
     public void addPlayer(Player player) {
-        if (arenaName == null || arenaName.isEmpty()) {
+        if (arenaID == null || arenaID.isEmpty()) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Arena ID");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (arenaDisplayName == null || arenaDisplayName.isEmpty()) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Arena Name");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getMinPlayers() == 0) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Min Players");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getMaxPlayers() == 0) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Max Players");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getMinPlayers() > getMaxPlayers()) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Min > Max");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getSpawn() == null) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Spawn Location");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getWaitLocation() == null) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Wait Location");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getTime() == 0) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Wait To Start");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getReEnableCount() == 0) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Wait To Re-Enable");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (winCorner1 == null || winCorner1.isEmpty()) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Win Zone Corner");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (winCorner2 == null || winCorner2.isEmpty()) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Win Zone Corner");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (arenaCorner1 == null || arenaCorner1.isEmpty()) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Arena Zone Corner");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (arenaCorner2 == null || arenaCorner2.isEmpty()) {
             String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Arena Zone Corner");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getArenaStatus() == ArenaStatus.PLAYING) {
             String message = MessagesConfiguration.getPath("Messages.Arena.In Game");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getArenaStatus() == ArenaStatus.ENDING) {
             String message = MessagesConfiguration.getPath("Messages.Arena.Ending");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getPlayers().size() == getMaxPlayers()) {
             String message = MessagesConfiguration.getPath("Messages.Arena.Full");
-            message = Utils.replace(message, "%arenaID%", arenaName);
+            message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
@@ -396,7 +483,7 @@ public class Arena {
             broadcast(message);
         }
         if (getArenaStatus() == ArenaStatus.PLAYING) {
-            if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Lose.Add Lose On Disconnect/Leave")) {
+            if (getConfig().getBoolean("Extensions.Lose.Add Lose On Disconnect/Leave")) {
                 Storage.getStorage().addLose(player);
             }
         }
@@ -418,7 +505,7 @@ public class Arena {
             setMaxTime(getDefMaxTime());
             return;
         }
-        if (getPlayers().size() == 1 && ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Win.Last Player Wins")) {
+        if (getPlayers().size() == 1 && getConfig().getBoolean("Extensions.Win.Last Player Wins")) {
             finalizeArenaWithWinner(getPlayers().get(0));
             return;
         }
@@ -430,7 +517,7 @@ public class Arena {
     public void removePlayerSilent(Player player) {
         players.remove(player);
         if (getArenaStatus() == ArenaStatus.PLAYING) {
-            if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Lose.Add Lose On Disconnect/Leave")) {
+            if (getConfig().getBoolean("Extensions.Lose.Add Lose On Disconnect/Leave")) {
                 Storage.getStorage().addLose(player);
             }
         }
@@ -444,7 +531,7 @@ public class Arena {
             setMaxTime(getDefMaxTime());
             return;
         }
-        if (getPlayers().size() == 1 && ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Win.Last Player Wins")) {
+        if (getPlayers().size() == 1 && getConfig().getBoolean("Extensions.Win.Last Player Wins")) {
             finalizeArenaWithWinner(getPlayers().get(0));
             return;
         }
@@ -459,12 +546,13 @@ public class Arena {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+        arenaConfig.set("Enabled", enabled);
         if (!enabled) {
+            teleportSpawn(true);
             arenaStatus = ArenaStatus.DISABLED;
             String message = MessagesConfiguration.getPath("Messages.Arena.Parameter Changed.Arena Disabled.Message To Players");
             message = Utils.format(message);
             broadcast(message);
-            teleportSpawn(true);
         } else {
             arenaStatus = ArenaStatus.WAITING;
         }
@@ -527,12 +615,12 @@ public class Arena {
                 message = Utils.format(message);
                 broadcast(message);
         }
-        if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Lose.Add Lose On Tie")) {
+        if (getConfig().getBoolean("Extensions.Lose.Add Lose On Tie")) {
             for (Player players : getPlayers()) {
                 Storage.getStorage().addLose(players);
             }
         }
-        if (ArenasConfiguration.getConfiguration().getBoolean("Arenas." + arenaName + ".Extensions.Win.Add Win On Tie")) {
+        if (getConfig().getBoolean("Extensions.Lose.Win.Add Win On Tie")) {
             for (Player players : getPlayers()) {
                 Storage.getStorage().addWin(players);
             }
@@ -554,13 +642,13 @@ public class Arena {
             }
         }
         setArenaStatus(ArenaStatus.ENDING);
-        Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaName + " ha sido finalizada");
+        Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID + " ha sido finalizada");
         Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus.toString());
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             setTime(getDefTime());
             setMaxTime(getDefMaxTime());
             teleportSpawn(false);
-            Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaName +" ha sido habilitada nuevamente");
+            Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID +" ha sido habilitada nuevamente");
             Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus);
         }, 20L * getReEnableCount());
     }
@@ -616,14 +704,14 @@ public class Arena {
                 }
             }, 0L, 20L);
         }
-        Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaName + " ha sido finalizada (With Winner)");
+        Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID + " ha sido finalizada (With Winner)");
         Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus.toString());
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             setWinner(null);
             setTime(getDefTime());
             setMaxTime(getDefMaxTime());
             teleportSpawn(false);
-            Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaName +" ha sido habilitada nuevamente");
+            Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID +" ha sido habilitada nuevamente");
             Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus);
         }, 20L * getReEnableCount());
     }

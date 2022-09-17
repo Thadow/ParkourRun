@@ -87,9 +87,9 @@ public class Utils {
         return sorted;
     }
 
-    public static boolean isNearEmeraldBlock(Player p, int radius) {
+    public static boolean isNearBlock(Player p, int radius, String name) {
         for (Block b : getNearbyBlocks(p.getLocation(), radius)) {
-            if (b.getType() == Material.EMERALD_BLOCK) {
+            if (b.getType() == Material.valueOf(name)) {
                 return true;
             }
         }
