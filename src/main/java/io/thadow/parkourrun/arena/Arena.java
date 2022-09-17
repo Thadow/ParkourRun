@@ -6,6 +6,8 @@ import io.thadow.parkourrun.managers.CooldownManager;
 import io.thadow.parkourrun.utils.configurations.ArenaConfig;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
+import io.thadow.parkourrun.utils.debug.Debugger;
+import io.thadow.parkourrun.utils.debug.type.DebugType;
 import io.thadow.parkourrun.utils.lib.titles.Titles;
 import io.thadow.parkourrun.utils.storage.Storage;
 import org.bukkit.*;
@@ -81,7 +83,8 @@ public class Arena {
         World spawnWorld;
         double spawnX, spawnY, spawnZ;
         float spawnYaw, spawnPitch;
-        String[] spawnLocationSplit = configuration.getString("Spawn Location").split(";");
+        String spawnLocation = configuration.getString("Spawn Location");
+        String[] spawnLocationSplit = spawnLocation.split(";");
         spawnWorld = Bukkit.getWorld(spawnLocationSplit[0]);
         spawnX = Double.parseDouble(spawnLocationSplit[1]);
         spawnY = Double.parseDouble(spawnLocationSplit[2]);
@@ -93,14 +96,15 @@ public class Arena {
         World waitWorld;
         double waitX, waitY, waitZ;
         float waitYaw, waitPitch;
-        String[] waitLocationSplit = configuration.getString("Wait Location").split(";");
+        String waitLocation = configuration.getString("Wait Location");
+        String[] waitLocationSplit = waitLocation.split(";");
         waitWorld = Bukkit.getWorld(waitLocationSplit[0]);
         waitX = Double.parseDouble(waitLocationSplit[1]);
         waitY = Double.parseDouble(waitLocationSplit[2]);
         waitZ = Double.parseDouble(waitLocationSplit[3]);
         waitYaw = Float.parseFloat(waitLocationSplit[4]);
         waitPitch = Float.parseFloat(waitLocationSplit[5]);
-        waitLocation = new Location(waitWorld, waitX, waitY, waitZ, waitYaw, waitPitch);
+        this.waitLocation = new Location(waitWorld, waitX, waitY, waitZ, waitYaw, waitPitch);
 
         time = configuration.getInt("Wait Time To Start");
         defTime = time;
@@ -127,10 +131,15 @@ public class Arena {
                 checkpoints.put(checkpoint, full);
                 Bukkit.getConsoleSender().sendMessage("Checkpoint: " + checkpoint);
             }
-            this.checkpoints = checkpoints;
         }
+        this.checkpoints = checkpoints;
 
         enabled = configuration.getBoolean("Enabled");
+        if (!enabled) {
+            arenaStatus = ArenaStatus.DISABLED;
+        } else {
+            arenaStatus = ArenaStatus.WAITING;
+        }
     }
 
     public String getWinCorner1() {

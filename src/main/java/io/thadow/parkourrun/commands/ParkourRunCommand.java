@@ -1,5 +1,6 @@
 package io.thadow.parkourrun.commands;
 
+import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
@@ -72,6 +73,12 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
                 NumberFormat numberFormat = NumberFormat.getInstance();
                 numberFormat.setMaximumFractionDigits(2);
                 String locationString = player.getWorld().getName() + ";" + numberFormat.format(player.getLocation().getX()) + ";"
@@ -97,6 +104,12 @@ public class ParkourRunCommand implements CommandExecutor {
                 Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
                 if (arena == null) {
                     String message = MessagesConfiguration.getPath("Messages.Arena.Unknown Arena");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
                     message = Utils.format(message);
                     player.sendMessage(message);
                     return true;
@@ -131,6 +144,12 @@ public class ParkourRunCommand implements CommandExecutor {
                         player.sendMessage(message);
                         return true;
                     }
+                    if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                        String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        return true;
+                    }
                     arena.setMinPlayers(Integer.parseInt(args[1]));
                     String message = MessagesConfiguration.getPath("Messages.Arena.Parameter Changed.Min Players Set");
                     message = Utils.replace(message, "%minPlayers%", args[1]);
@@ -160,6 +179,12 @@ public class ParkourRunCommand implements CommandExecutor {
                         player.sendMessage(message);
                         return true;
                     }
+                    if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                        String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        return true;
+                    }
                     arena.setMaxPlayers(Integer.parseInt(args[1]));
                     String message = MessagesConfiguration.getPath("Messages.Arena.Parameter Changed.Max Players Set");
                     message = Utils.replace(message, "%maxPlayers%", args[1]);
@@ -183,6 +208,12 @@ public class ParkourRunCommand implements CommandExecutor {
                     Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
                     if (arena == null) {
                         String message = MessagesConfiguration.getPath("Messages.Arena.Unknown Arena");
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        return true;
+                    }
+                    if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                        String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
                         message = Utils.format(message);
                         player.sendMessage(message);
                         return true;
@@ -216,8 +247,49 @@ public class ParkourRunCommand implements CommandExecutor {
                         player.sendMessage(message);
                         return true;
                     }
+                    if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                        String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        return true;
+                    }
                     arena.setReEnableCount(Integer.parseInt(args[1]));
-                    String message = MessagesConfiguration.getPath("Messages.Arena.Parameter Changed.Wait Time To Re-Enable");
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Parameter Changed.Wait Time To Re-Enable Set");
+                    message = Utils.replace(message, "%time%", args[1]);
+                    message = Utils.replace(message, "%arenaID%", arenaID);
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    if (MessagesConfiguration.getBoolean("Messages.Arena.Parameter Changed.Show Info.Enabled")) {
+                        if (MessagesConfiguration.getBoolean("Messages.Arena.Parameter Changed.Show Info.Enabled")) {
+                            MessagesConfiguration.sendInfoMessage(player, arena, arenaID);
+                        }
+                    }
+                } else {
+                    player.sendMessage("Numero invalido");
+                    return true;
+                }
+            } else {
+                Permission.deny(player, "parkourrun.commands.admin");
+            }
+        }else if (args.length == 3 && args[0].equalsIgnoreCase("setMaxTime")) {
+            if (player.hasPermission("parkourrun.commands.admin")) {
+                if (NumberUtils.isNumber(args[1])) {
+                    String arenaID = args[2];
+                    Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+                    if (arena == null) {
+                        String message = MessagesConfiguration.getPath("Messages.Arena.Unknown Arena");
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        return true;
+                    }
+                    if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                        String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        return true;
+                    }
+                    arena.setMaxTime(Integer.parseInt(args[1]));
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Parameter Changed.Max Time Set");
                     message = Utils.replace(message, "%time%", args[1]);
                     message = Utils.replace(message, "%arenaID%", arenaID);
                     message = Utils.format(message);
@@ -240,6 +312,12 @@ public class ParkourRunCommand implements CommandExecutor {
                 Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
                 if (arena == null) {
                     String message = MessagesConfiguration.getPath("Messages.Arena.Unknown Arena");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
                     message = Utils.format(message);
                     player.sendMessage(message);
                     return true;
@@ -272,6 +350,12 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
                 NumberFormat numberFormat = NumberFormat.getInstance();
                 numberFormat.setMaximumFractionDigits(2);
                 String format = numberFormat.format(player.getLocation().getBlockX()) + ";" + numberFormat.format(player.getLocation().getBlockY()) + ";" + numberFormat.format(player.getLocation().getBlockZ());
@@ -293,6 +377,12 @@ public class ParkourRunCommand implements CommandExecutor {
                 Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
                 if (arena == null) {
                     String message = MessagesConfiguration.getPath("Messages.Arena.Unknown Arena");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
                     message = Utils.format(message);
                     player.sendMessage(message);
                     return true;
@@ -322,6 +412,12 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
                 NumberFormat numberFormat = NumberFormat.getInstance();
                 numberFormat.setMaximumFractionDigits(2);
                 String format = numberFormat.format(player.getLocation().getBlockX()) + ";" + numberFormat.format(player.getLocation().getBlockY()) + ";" + numberFormat.format(player.getLocation().getBlockZ());
@@ -343,6 +439,12 @@ public class ParkourRunCommand implements CommandExecutor {
                 Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
                 if (arena == null) {
                     String message = MessagesConfiguration.getPath("Messages.Arena.Unknown Arena");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
                     message = Utils.format(message);
                     player.sendMessage(message);
                     return true;
@@ -372,8 +474,15 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
                 Material underBlock = player.getLocation().getBlock().getRelative(BlockFace.DOWN).getType();
-                if (underBlock == Material.EMERALD_BLOCK) {
+                String underBlockName = Main.getConfiguration().getString("Configuration.Arenas.Checkpoints.Under Block");
+                if (underBlock == Material.valueOf(underBlockName)) {
                     String checkpointLocation = player.getLocation().getWorld().getName() + ";" + player.getLocation().getX() + ";" + player.getLocation().getY() + ";" + player.getLocation().getZ()
                             + ";" + player.getLocation().getYaw() + ";" + player.getLocation().getPitch();
                     int newY = player.getLocation().getBlockY() + 1;
@@ -384,12 +493,12 @@ public class ParkourRunCommand implements CommandExecutor {
                     int newZ2 = player.getLocation().getBlockZ() - 1;
                     String corner1 = newX1 + ";" + newY + ";" + newZ1;
                     String corner2 = newX2 + ";" + newYdown + ";" + newZ2;
-                    int totalCheckpoints = CheckpointManager.getCheckpointManager().getTotalCheckpoints(ArenaManager.getArenaManager().getArena(arenaID));
+                    int totalCheckpoints = CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena);
                     if (totalCheckpoints == 0) {
                         arena.addCheckpoint(1, checkpointLocation + "/-/" + corner1 + "/-/" + corner2);
                         String message = MessagesConfiguration.getPath("Messages.Arena.Parameter Changed.Checkpoint Added");
                         message = Utils.replace(message, "%checkpointID%", "1");
-                        message = Utils.replace(message, "%totalCheckpoints%", String.valueOf(totalCheckpoints));
+                        message = Utils.replace(message, "%totalCheckpoints%", String.valueOf(totalCheckpoints) + 1);
                         message = Utils.replace(message, "%arenaID%", arenaID);
                         message = Utils.format(message);
                         player.sendMessage(message);
@@ -430,6 +539,12 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = MessagesConfiguration.getPath("Messages.Arena.Can't Modify");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
                 int lastCheckpoint = CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena);
                 arena.deleteCheckpoint(lastCheckpoint);
                 String message = MessagesConfiguration.getPath("Messages.Arena.Parameter Changed.Checkpoint Deleted");
@@ -449,7 +564,7 @@ public class ParkourRunCommand implements CommandExecutor {
         } else if (args.length == 2 && args[0].equalsIgnoreCase("createArena")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
                 String arenaID = args[1];
-                if (ArenaManager.getArenaManager().createArena(player, arenaID)) {
+                if (ArenaManager.getArenaManager().createArena(arenaID)) {
                     String message = MessagesConfiguration.getPath("Messages.Arena.Arena Created");
                     message = Utils.format(message);
                     player.sendMessage(message);
@@ -464,7 +579,7 @@ public class ParkourRunCommand implements CommandExecutor {
         } else if (args.length == 2 && args[0].equalsIgnoreCase("deleteArena")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
                 String arenaID = args[1];
-                if (ArenaManager.getArenaManager().deleteArena(player, arenaID)) {
+                if (ArenaManager.getArenaManager().deleteArena(arenaID)) {
                     String message = MessagesConfiguration.getPath("Messages.Arena.Arena Deleted");
                     message = Utils.format(message);
                     player.sendMessage(message);

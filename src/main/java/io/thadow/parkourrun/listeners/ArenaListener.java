@@ -40,7 +40,6 @@ public class ArenaListener implements Listener {
             Region winRegion = new Region(new Vector(Integer.parseInt(winCorner1[0]), Integer.parseInt(winCorner1[1]), Integer.parseInt(winCorner1[2])),
                     new Vector(Integer.parseInt(winCorner2[0]), Integer.parseInt(winCorner2[1]), Integer.parseInt(winCorner2[2])));
             if (winRegion.isInside(player.getLocation())) {
-                String arenaID = arena.getArenaID();
                 if (arena.getConfig().getBoolean("Extensions.Checkpoints.Need All To Win")) {
                     int lastCheckpoint = CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena);
                     int currentPlayerCheckpoint = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);

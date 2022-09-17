@@ -100,20 +100,20 @@ public class ArenaManager {
         }
     }
 
-    public boolean createArena(Player player, String arenaID) {
-        try {
+    public boolean createArena(String arenaID) {
+        File file = new File(Main.getInstance().getDataFolder(), "/Arenas/" + arenaID + ".yml");
+        if (!file.exists()) {
             Arena arena = new Arena(arenaID);
             getArenas().add(arena);
             return true;
-        }catch (Exception exception) {
+        } else {
             return false;
         }
     }
 
-    public boolean deleteArena(Player player, String arenaID) {
+    public boolean deleteArena(String arenaID) {
         File arenaFile = new File(Main.getInstance().getDataFolder(), "/Arenas/" + arenaID + ".yml");
         if (!arenaFile.exists()) {
-            player.sendMessage("Unknown arena config file");
             return false;
         }
 

@@ -23,6 +23,9 @@ public class CheckpointManager {
         if (arena == null) {
             return 0;
         }
+        if (arena.getCheckpoints() == null) {
+            return 0;
+        }
         return arena.getCheckpoints().size();
     }
 

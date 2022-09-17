@@ -40,8 +40,7 @@ public class ConfigManager {
             }
         }
 
-        configuration = YamlConfiguration.loadConfiguration(file);
-        configuration.options().copyDefaults(true);
+        configuration = YamlConfiguration.loadConfiguration(this.file);
         this.configName = configName;
     }
 

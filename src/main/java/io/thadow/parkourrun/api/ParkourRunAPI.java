@@ -57,6 +57,24 @@ public class ParkourRunAPI {
         }
     }
 
+    public static String getArenaDisplayName(String arenaID) {
+        Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+        if (arena != null) {
+            return arena.getArenaDisplayName();
+        } else {
+            return "Unknown Arena";
+        }
+    }
+
+    public static ArenaStatus getArenaStatus(String arenaID) {
+        Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+        if (arena != null) {
+            return arena.getArenaStatus();
+        } else {
+            return null;
+        }
+    }
+
     public static ArenaStatus getPlayerArenaStatus(Player player) {
         Arena arena = ArenaManager.getArenaManager().getArena(player);
         if (arena != null) {
