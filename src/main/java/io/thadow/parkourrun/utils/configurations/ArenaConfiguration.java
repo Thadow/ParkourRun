@@ -1,12 +1,11 @@
 package io.thadow.parkourrun.utils.configurations;
 
-import io.thadow.parkourrun.Main;
-import io.thadow.parkourrun.managers.ConfigManager;
+import io.thadow.parkourrun.managers.ConfigurationManager;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-public class ArenaConfig extends ConfigManager {
+public class ArenaConfiguration extends ConfigurationManager {
 
-    public ArenaConfig(String configName, String dir) {
+    public ArenaConfiguration(String configName, String dir) {
         super(configName, dir);
         if (isFirstTime()) {
             YamlConfiguration configuration = getConfiguration();

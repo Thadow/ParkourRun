@@ -509,7 +509,7 @@ public class ParkourRunCommand implements CommandExecutor {
                         }
                     } else {
                         for (int i = 1; i <= totalCheckpoints + 1; i++) {
-                            if (!arena.configContains("Arenas." + arenaID + ".Checkpoints." + i + ".Location")) {
+                            if (!arena.getConfiguration().contains("Arenas." + arenaID + ".Checkpoints." + i + ".Location")) {
                                 arena.addCheckpoint(i, checkpointLocation + "/-/" + corner1 + "/-/" + corner2);
                                 String message = MessagesConfiguration.getPath("Messages.Arena.Parameter Changed.Checkpoint Added");
                                 message = Utils.replace(message, "%checkpointID%", String.valueOf(i));

@@ -9,14 +9,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class ConfigManager {
+public class ConfigurationManager {
 
     private YamlConfiguration configuration;
     private File file;
     private String configName;
     private boolean firstTime = false;
 
-    public ConfigManager(String configName, String dir) {
+    public ConfigurationManager(String configName, String dir) {
         File file = new File(dir);
         if (!file.exists()) {
             if (!file.mkdirs()) {

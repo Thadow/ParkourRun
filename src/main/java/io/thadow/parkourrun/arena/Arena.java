@@ -3,11 +3,9 @@ package io.thadow.parkourrun.arena;
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.CooldownManager;
-import io.thadow.parkourrun.utils.configurations.ArenaConfig;
+import io.thadow.parkourrun.utils.configurations.ArenaConfiguration;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
-import io.thadow.parkourrun.utils.debug.Debugger;
-import io.thadow.parkourrun.utils.debug.type.DebugType;
 import io.thadow.parkourrun.utils.lib.titles.Titles;
 import io.thadow.parkourrun.utils.storage.Storage;
 import org.bukkit.*;
@@ -42,7 +40,7 @@ public class Arena {
     private final Map<Player, Integer> nextPlayerCheckpoint = new HashMap<>();
 
     private final YamlConfiguration configuration;
-    private final ArenaConfig arenaConfig;
+    private final ArenaConfiguration arenaConfig;
 
     public String getCheckpointCorners(Integer id) {
         return checkpoints.get(id);
@@ -73,7 +71,7 @@ public class Arena {
     public Arena(String arenaID) {
         this.arenaID = arenaID;
 
-        arenaConfig = new ArenaConfig(arenaID, Main.getInstance().getDataFolder() + "/Arenas");
+        arenaConfig = new ArenaConfiguration(arenaID, Main.getInstance().getDataFolder() + "/Arenas");
         configuration = arenaConfig.getConfiguration();
 
         arenaDisplayName = configuration.getString("Arena Name");
@@ -196,11 +194,7 @@ public class Arena {
         arenaConfig.set("Total Checkpoints", id - 1);
     }
 
-    public boolean configContains(String path) {
-        return configuration.contains(path);
-    }
-
-    public YamlConfiguration getConfig() {
+    public YamlConfiguration getConfiguration() {
         return arenaConfig.getConfiguration();
     }
 
@@ -492,7 +486,7 @@ public class Arena {
             broadcast(message);
         }
         if (getArenaStatus() == ArenaStatus.PLAYING) {
-            if (getConfig().getBoolean("Extensions.Lose.Add Lose On Disconnect/Leave")) {
+            if (getConfiguration().getBoolean("Extensions.Lose.Add Lose On Disconnect/Leave")) {
                 Storage.getStorage().addLose(player);
             }
         }
@@ -514,7 +508,7 @@ public class Arena {
             setMaxTime(getDefMaxTime());
             return;
         }
-        if (getPlayers().size() == 1 && getConfig().getBoolean("Extensions.Win.Last Player Wins")) {
+        if (getPlayers().size() == 1 && getConfiguration().getBoolean("Extensions.Win.Last Player Wins")) {
             finalizeArenaWithWinner(getPlayers().get(0));
             return;
         }
@@ -526,7 +520,7 @@ public class Arena {
     public void removePlayerSilent(Player player) {
         players.remove(player);
         if (getArenaStatus() == ArenaStatus.PLAYING) {
-            if (getConfig().getBoolean("Extensions.Lose.Add Lose On Disconnect/Leave")) {
+            if (getConfiguration().getBoolean("Extensions.Lose.Add Lose On Disconnect/Leave")) {
                 Storage.getStorage().addLose(player);
             }
         }
@@ -540,7 +534,7 @@ public class Arena {
             setMaxTime(getDefMaxTime());
             return;
         }
-        if (getPlayers().size() == 1 && getConfig().getBoolean("Extensions.Win.Last Player Wins")) {
+        if (getPlayers().size() == 1 && getConfiguration().getBoolean("Extensions.Win.Last Player Wins")) {
             finalizeArenaWithWinner(getPlayers().get(0));
             return;
         }
@@ -624,12 +618,12 @@ public class Arena {
                 message = Utils.format(message);
                 broadcast(message);
         }
-        if (getConfig().getBoolean("Extensions.Lose.Add Lose On Tie")) {
+        if (getConfiguration().getBoolean("Extensions.Lose.Add Lose On Tie")) {
             for (Player players : getPlayers()) {
                 Storage.getStorage().addLose(players);
             }
         }
-        if (getConfig().getBoolean("Extensions.Lose.Win.Add Win On Tie")) {
+        if (getConfiguration().getBoolean("Extensions.Lose.Win.Add Win On Tie")) {
             for (Player players : getPlayers()) {
                 Storage.getStorage().addWin(players);
             }

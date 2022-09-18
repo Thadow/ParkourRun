@@ -40,7 +40,7 @@ public class ArenaListener implements Listener {
             Region winRegion = new Region(new Vector(Integer.parseInt(winCorner1[0]), Integer.parseInt(winCorner1[1]), Integer.parseInt(winCorner1[2])),
                     new Vector(Integer.parseInt(winCorner2[0]), Integer.parseInt(winCorner2[1]), Integer.parseInt(winCorner2[2])));
             if (winRegion.isInside(player.getLocation())) {
-                if (arena.getConfig().getBoolean("Extensions.Checkpoints.Need All To Win")) {
+                if (arena.getConfiguration().getBoolean("Extensions.Checkpoints.Need All To Win")) {
                     int lastCheckpoint = CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena);
                     int currentPlayerCheckpoint = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);
                     if (currentPlayerCheckpoint == lastCheckpoint) {
@@ -160,7 +160,7 @@ public class ArenaListener implements Listener {
             if (event.getCause() == EntityDamageEvent.DamageCause.FALL) {
                 Arena arena = ArenaManager.getArenaManager().getArena((Player) event.getEntity());
                 if (arena != null) {
-                    if (arena.getConfig().getBoolean("Extensions.Damage.Disable Fall Damage")) {
+                    if (arena.getConfiguration().getBoolean("Extensions.Damage.Disable Fall Damage")) {
                         event.setCancelled(true);
                     }
                 }
@@ -175,7 +175,7 @@ public class ArenaListener implements Listener {
                 Player player = (Player) event.getEntity();
                 Arena arena = ArenaManager.getArenaManager().getArena(player);
                 if (arena != null) {
-                    if (arena.getConfig().getBoolean("Extensions.Damage.Disable Player Damage")) {
+                    if (arena.getConfiguration().getBoolean("Extensions.Damage.Disable Player Damage")) {
                         event.setCancelled(true);
                     }
                 }
@@ -189,7 +189,7 @@ public class ArenaListener implements Listener {
             Player player = (Player) event.getEntity();
             Arena arena = ArenaManager.getArenaManager().getArena(player);
             if (arena != null) {
-                if (arena.getConfig().getBoolean("Extensions.Damage.Disable Monster Damage")) {
+                if (arena.getConfiguration().getBoolean("Extensions.Damage.Disable Monster Damage")) {
                     event.setCancelled(true);
                 }
             }

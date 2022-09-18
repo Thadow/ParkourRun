@@ -11,6 +11,7 @@ Messages:
     Wait Location: "%prefix% &cParámetro Invalido (Wait Location / %arenaID%)"
     Wait To Start: "%prefix% &cParámetro Invalido (Wait To Start Time / %arenaID%)"
     Wait To Re-Enable: "%prefix% &cParámetro Invalido (Wait To Re-Enable Time / %arenaID%)"
+    Max Time: "%prefix% &cParámetro Invalido (Max Time / %arenaID%)"
     Win Zone Corner: "%prefix% &cParámetro Invalido (Win Zone Corner 1-2 / %arenaID%)"
     Arena Zone Corner: "%prefix% &cParámetro Invalido (Arena Zone Corner 1-2 / %arenaID%)"
   Arena:
@@ -27,7 +28,6 @@ Messages:
         Message: "%prefix% &cLa arena ha sido desactivada correctamente!"
         Message To Players: "%prefix% &cLa arena ha sido desactivada, todos han sido enviados al spawn."
       Arena Enabled: "%prefix% &aLa arena ha sido activada correctamente!"
-      Arena Created: "%prefix% &aArena creada correctamente! &7(ArenaID: %arenaID%, Arena Name: %arenaName%, minPlayers: %minPlayers%, maxPlayers: %maxPlayers%)"
       Spawn Location Set: "%prefix% &aLocalización del spawn cambiada correctamente! &7(World: %world%, XYZ: %x%-%y%-%z%, Pitch: %pitch%, Yaw: %yaw% - ArenaID: %arenaID%)"
       Wait Location Set: "%prefix% &aLocalización del spawn de espera cambiada correctamente! &7(World: %world%, XYZ: %x%-%y%-%z%, Pitch: %pitch%, Yaw: %yaw% - ArenaID: %arenaID%)"
       Min Players Set: "%prefix% &aCantidad minima de jugadores cambiada correctamente! &7(Cantidad: %minPlayers% - ArenaID: %arenaID%)"
@@ -128,8 +128,8 @@ Messages:
       Message:
         - "&e&m                               "
         - ""
-        - "     &aPartida Finalizada!"
-        - "    &6Ganador&8: &e%winner%"
+        - "     &aPartida Finalizada!         "
+        - "    &6Ganador&8: &e%winner%        "
         - ""
         - "&e&m                               "
       Titles:
