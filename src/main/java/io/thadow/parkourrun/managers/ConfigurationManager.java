@@ -40,11 +40,13 @@ public class ConfigurationManager {
             }
         }
 
+        Debugger.debug(DebugType.INFO, "&aLoading: " + this.file.getPath());
         configuration = YamlConfiguration.loadConfiguration(this.file);
         this.configName = configName;
     }
 
     public void reload() {
+        Debugger.debug(DebugType.INFO, "&aReloading: " + this.file.getPath());
         configuration = YamlConfiguration.loadConfiguration(file);
     }
 
@@ -55,6 +57,7 @@ public class ConfigurationManager {
 
     public void save() {
         try {
+            Debugger.debug(DebugType.INFO, "&aSaving: " + this.file.getPath());
             configuration.save(file);
         } catch (IOException exception) {
             Debugger.debug(DebugType.ALERT, "&cError while saving: " + file.getPath());

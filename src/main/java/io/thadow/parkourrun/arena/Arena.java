@@ -30,7 +30,7 @@ public class Arena {
     private int maxTime, time, defTime, defMaxTime;
     private int minPlayers, maxPlayers;
     private Location spawn, waitLocation;
-    private int reEnableCount;
+    private int reEnableTime, endingTime;
     private ArenaStatus arenaStatus = ArenaStatus.WAITING;
     private final List<Player> players = new ArrayList<>();
     private int fireworksTaskID;
@@ -106,7 +106,9 @@ public class Arena {
         time = configuration.getInt("Wait Time To Start");
         defTime = time;
 
-        reEnableCount = configuration.getInt("Wait Time To Re-Enable");
+        reEnableTime = configuration.getInt("Re-Enable Time");
+
+        endingTime = configuration.getInt("Ending Time");
 
         maxTime = configuration.getInt("Max Time");
         defMaxTime = maxTime;
@@ -230,17 +232,27 @@ public class Arena {
         this.defMaxTime = defMaxTime;
     }
 
-    public void setReEnableCount(int reEnableCount) {
-        this.reEnableCount = reEnableCount;
-        arenaConfig.set("Wait Time To Re-Enable", reEnableCount);
+    public void setReEnableTime(int reEnableTime) {
+        this.reEnableTime = reEnableTime;
+        arenaConfig.set("Re-Enable Time", reEnableTime);
         arenaConfig.save();
     }
 
-    public void setMaxTime(int maxTime) {
-        this.maxTime = maxTime;
-        setDefMaxTime(maxTime);
-        arenaConfig.set("Max Time", maxTime);
+    public void setEndingTime(int endingTime) {
+        this.endingTime = endingTime;
+        arenaConfig.set("Ending Time", endingTime);
         arenaConfig.save();
+    }
+
+    public void setMaxTime(int maxTime, boolean save, boolean setting) {
+        this.maxTime = maxTime;
+        if (setting) {
+            setDefMaxTime(maxTime);
+        }
+        if (save) {
+            arenaConfig.set("Max Time", maxTime);
+            arenaConfig.save();
+        }
     }
 
     public int getMaxTime() {
@@ -341,8 +353,12 @@ public class Arena {
         return time;
     }
 
-    public int getReEnableCount() {
-        return reEnableCount;
+    public int getReEnableTime() {
+        return reEnableTime;
+    }
+
+    public int getEndingTime() {
+        return endingTime;
     }
 
 
@@ -403,8 +419,15 @@ public class Arena {
             player.sendMessage(message);
             return;
         }
-        if (getReEnableCount() == 0) {
-            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Wait To Re-Enable");
+        if (getReEnableTime() == 0) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Re-Enable Time");
+            message = Utils.replace(message, "%arenaID%", arenaID);
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return;
+        }
+        if (getEndingTime() == 0) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Ending Time");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
@@ -510,17 +533,17 @@ public class Arena {
             finalizeArena(false);
             return;
         }
-        if (getPlayers().size() < minPlayers && getArenaStatus() == ArenaStatus.STARTING) {
-            setArenaStatus(ArenaStatus.WAITING);
-            setTime(getDefTime());
-            setMaxTime(getDefMaxTime());
-            return;
-        }
-        if (getPlayers().size() == 1 && getConfiguration().getBoolean("Extensions.Win.Last Player Wins")) {
+        if (getPlayers().size() == 1 && getConfiguration().getBoolean("Extensions.Win.Last Player Win") && getArenaStatus() == ArenaStatus.PLAYING) {
             finalizeArenaWithWinner(getPlayers().get(0));
             return;
         }
-        if (getArenaStatus() == ArenaStatus.WAITING || getArenaStatus() == ArenaStatus.STARTING) {
+        if (getPlayers().size() < minPlayers && getArenaStatus() == ArenaStatus.STARTING) {
+            setArenaStatus(ArenaStatus.WAITING);
+            setTime(getDefTime());
+            setMaxTime(getDefMaxTime(), false, true);
+            return;
+        }
+        if (getArenaStatus() == ArenaStatus.WAITING) {
             checkArena();
         }
     }
@@ -539,14 +562,14 @@ public class Arena {
         if (getPlayers().size() < minPlayers && getArenaStatus() == ArenaStatus.STARTING) {
             setArenaStatus(ArenaStatus.WAITING);
             setTime(getDefTime());
-            setMaxTime(getDefMaxTime());
+            setMaxTime(getDefMaxTime(), false, true);
             return;
         }
-        if (getPlayers().size() == 1 && getConfiguration().getBoolean("Extensions.Win.Last Player Wins")) {
+        if (getPlayers().size() == 1 && getConfiguration().getBoolean("Extensions.Win.Last Player Win") && getArenaStatus() == ArenaStatus.PLAYING) {
             finalizeArenaWithWinner(getPlayers().get(0));
             return;
         }
-        if (getArenaStatus() == ArenaStatus.WAITING || getArenaStatus() == ArenaStatus.STARTING) {
+        if (getArenaStatus() == ArenaStatus.WAITING) {
             checkArena();
         }
     }
@@ -656,12 +679,15 @@ public class Arena {
         Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID + " ha sido finalizada");
         Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus.toString());
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-            setTime(getDefTime());
-            setMaxTime(getDefMaxTime());
             teleportSpawn(false);
-            Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID +" ha sido habilitada nuevamente");
-            Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus);
-        }, 20L * getReEnableCount());
+            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                this.time = getDefTime();
+                this.maxTime = getDefMaxTime();
+                setArenaStatus(ArenaStatus.WAITING);
+                Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID +" ha sido habilitada nuevamente");
+                Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus);
+            }, 20L * getReEnableTime());
+        }, 20L * getEndingTime());
     }
 
     public void finalizeArenaWithWinner(Player winner) {
@@ -718,13 +744,15 @@ public class Arena {
         Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID + " ha sido finalizada (With Winner)");
         Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus.toString());
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-            setWinner(null);
-            setTime(getDefTime());
-            setMaxTime(getDefMaxTime());
             teleportSpawn(false);
-            Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID +" ha sido habilitada nuevamente");
-            Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus);
-        }, 20L * getReEnableCount());
+            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                this.time = getDefTime();
+                this.maxTime = getDefMaxTime();
+                setArenaStatus(ArenaStatus.WAITING);
+                Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID +" ha sido habilitada nuevamente");
+                Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus);
+            }, 20L * getReEnableTime());
+        }, 20L * getEndingTime());
     }
 
 
@@ -750,7 +778,6 @@ public class Arena {
             return;
         }
         getPlayers().clear();
-        setArenaStatus(ArenaStatus.WAITING);
     }
 
     public void cancel(int taskID) {

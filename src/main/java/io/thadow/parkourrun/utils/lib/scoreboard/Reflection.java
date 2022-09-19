@@ -1,215 +1,127 @@
 package io.thadow.parkourrun.utils.lib.scoreboard;
 
-import java.util.HashMap;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
-import java.lang.reflect.Method;
-import java.lang.reflect.Constructor;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.Field;
+import java.util.Optional;
+import java.util.function.Predicate;
 
-public class Reflection {
+/**
+ * Small reflection utility class to use CraftBukkit and NMS.
+ *
+ * @author MrMicky
+ */
+public final class Reflection {
 
-    private static final String OLD_PACKAGE_NAME;
-    private static final Version VERSION;
+    private static final String NM_PACKAGE = "net.minecraft";
+    public static final String OBC_PACKAGE = "org.bukkit.craftbukkit";
+    public static final String NMS_PACKAGE = NM_PACKAGE + ".server";
 
-    public static final Field PLAYER_SCORES;
+    public static final String VERSION = Bukkit.getServer().getClass().getPackage().getName().substring(OBC_PACKAGE.length() + 1);
 
-    public static final Constructor<?> PACKET_SCORE_REMOVE;
-    public static final Constructor<?> PACKET_SCORE;
+    private static final MethodType VOID_METHOD_TYPE = MethodType.methodType(void.class);
+    private static final boolean NMS_REPACKAGED = optionalClass(NM_PACKAGE + ".network.protocol.Packet").isPresent();
 
-    public static final Object ENUM_SCORE_ACTION_CHANGE;
-    public static final Object ENUM_SCORE_ACTION_REMOVE;
+    private static volatile Object theUnsafe;
 
-    public static final Constructor<?> SB_SCORE;
-    public static final Method SB_SCORE_SET;
+    private Reflection() {
+        throw new UnsupportedOperationException();
+    }
 
-    public static final Constructor<?> PACKET_OBJ;
-    public static final Constructor<?> PACKET_DISPLAY;
+    public static boolean isRepackaged() {
+        return NMS_REPACKAGED;
+    }
 
-    public static final Field PLAYER_CONNECTION;
-    public static final Method SEND_PACKET;
+    public static String nmsClassName(String post1_17package, String className) {
+        if (NMS_REPACKAGED) {
+            String classPackage = post1_17package == null ? NM_PACKAGE : NM_PACKAGE + '.' + post1_17package;
+            return classPackage + '.' + className;
+        }
+        return NMS_PACKAGE + '.' + VERSION + '.' + className;
+    }
 
-    static {
-        String name = Bukkit.getServer().getClass().getPackage().getName();
-        String ver = name.substring(name.lastIndexOf('.') + 1);
-        VERSION = new Version(ver);
-        OLD_PACKAGE_NAME = "net.minecraft.server." + ver;
+    public static Class<?> nmsClass(String post1_17package, String className) throws ClassNotFoundException {
+        return Class.forName(nmsClassName(post1_17package, className));
+    }
 
-        Field playerScores = null;
+    public static Optional<Class<?>> nmsOptionalClass(String post1_17package, String className) {
+        return optionalClass(nmsClassName(post1_17package, className));
+    }
 
-        Constructor<?> packetScoreRemove = null;
-        Constructor<?> packetScore = null;
+    public static String obcClassName(String className) {
+        return OBC_PACKAGE + '.' + VERSION + '.' + className;
+    }
 
-        Object enumScoreActionChange = null;
-        Object enumScoreActionRemove = null;
+    public static Class<?> obcClass(String className) throws ClassNotFoundException {
+        return Class.forName(obcClassName(className));
+    }
 
-        Constructor<?> sbScore = null;
-        Method sbScoreSet = null;
+    public static Optional<Class<?>> obcOptionalClass(String className) {
+        return optionalClass(obcClassName(className));
+    }
 
-        Constructor<?> packetObj = null;
-        Constructor<?> packetDisplay = null;
-
-        Field playerConnection = null;
-        Method sendPacket = null;
-
+    public static Optional<Class<?>> optionalClass(String className) {
         try {
-            Class<?> packetScoreClass = getClass("net.minecraft.network.protocol.game", "PacketPlayOutScoreboardScore");
-            Class<?> packetDisplayClass = getClass("net.minecraft.network.protocol.game", "PacketPlayOutScoreboardDisplayObjective");
-            Class<?> packetObjClass = getClass("net.minecraft.network.protocol.game", "PacketPlayOutScoreboardObjective");
-
-            Class<?> scoreClass = getClass("net.minecraft.world.scores", "ScoreboardScore");
-
-            Class<?> sbClass = getClass("net.minecraft.world.scores", "Scoreboard");
-            Class<?> objClass = getClass("net.minecraft.world.scores", "ScoreboardObjective");
-
-            Class<?> playerClass = getClass("net.minecraft.server.level", "EntityPlayer");
-            Class<?> playerConnectionClass = getClass("net.minecraft.server.network", "PlayerConnection");
-            Class<?> packetClass = getClass("net.minecraft.network.protocol", "Packet");
-
-
-            sbScore = scoreClass.getConstructor(sbClass, objClass, String.class);
-            sbScoreSet = scoreClass.getMethod("setScore", int.class);
-
-            packetObj = packetObjClass.getConstructor(objClass, int.class);
-
-            packetDisplay = packetDisplayClass.getConstructor(int.class, objClass);
-
-            sendPacket = playerConnectionClass.getMethod("sendPacket", packetClass);
-
-            if (VERSION.isBelow1_19()) {
-                playerScores = sbClass.getDeclaredField("playerScores");
-                playerScores.setAccessible(true);
-
-                playerConnection = playerClass.getField("playerConnection");
-            }
-            else {
-                playerScores = sbClass.getDeclaredField("j");
-                playerScores.setAccessible(true);
-
-                playerConnection = playerClass.getField("b");
-            }
-
-            switch (VERSION.getMajor()) {
-                case "1.7":
-                    packetScore = packetScoreClass.getConstructor(scoreClass, int.class);
-                    break;
-                case "1.8":
-                case "1.9":
-                case "1.10":
-                case "1.11":
-                case "1.12":
-                    packetScore = packetScoreClass.getConstructor(scoreClass);
-                    packetScoreRemove = packetScoreClass.getConstructor(String.class, objClass);
-                    break;
-                default:
-                    Class<?> scoreActionClass = getClass("net.minecraft.server", "ScoreboardServer$Action");
-
-                    packetScore = packetScoreClass.getConstructor(scoreActionClass,
-                            String.class, String.class, int.class);
-
-                    enumScoreActionChange = scoreActionClass.getEnumConstants()[0];
-                    enumScoreActionRemove = scoreActionClass.getEnumConstants()[1];
-                    break;
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
+            return Optional.of(Class.forName(className));
+        } catch (ClassNotFoundException e) {
+            return Optional.empty();
         }
-
-        PLAYER_SCORES = playerScores;
-
-        PACKET_SCORE_REMOVE = packetScoreRemove;
-        PACKET_SCORE = packetScore;
-
-        ENUM_SCORE_ACTION_CHANGE = enumScoreActionChange;
-        ENUM_SCORE_ACTION_REMOVE = enumScoreActionRemove;
-
-        SB_SCORE = sbScore;
-        SB_SCORE_SET = sbScoreSet;
-
-        PACKET_OBJ = packetObj;
-        PACKET_DISPLAY = packetDisplay;
-
-        PLAYER_CONNECTION = playerConnection;
-        SEND_PACKET = sendPacket;
     }
 
-    public static Version getVersion() {
-        return VERSION;
+    public static Object enumValueOf(Class<?> enumClass, String enumName) {
+        return Enum.valueOf(enumClass.asSubclass(Enum.class), enumName);
     }
 
-    public static Class<?> getClass(String realPackageName, String name) throws ClassNotFoundException {
-        String packageName = VERSION.isBelow1_19() ? OLD_PACKAGE_NAME : realPackageName;
-
-        return Class.forName(packageName + "." + name);
-    }
-
-    private static final Map<Class<?>, Method> HANDLES = new HashMap<>();
-    public static Object getHandle(Object obj) throws NoSuchMethodException,
-            InvocationTargetException, IllegalAccessException {
-
-        Class<?> clazz = obj.getClass();
-
-        if(!HANDLES.containsKey(clazz)) {
-            Method method = clazz.getDeclaredMethod("getHandle");
-
-            if(!method.isAccessible())
-                method.setAccessible(true);
-
-            HANDLES.put(clazz, method);
+    public static Object enumValueOf(Class<?> enumClass, String enumName, int fallbackOrdinal) {
+        try {
+            return enumValueOf(enumClass, enumName);
+        } catch (IllegalArgumentException e) {
+            Object[] constants = enumClass.getEnumConstants();
+            if (constants.length > fallbackOrdinal) {
+                return constants[fallbackOrdinal];
+            }
+            throw e;
         }
-
-        return HANDLES.get(clazz).invoke(obj);
     }
 
-    public static void sendPacket(Object packet, Player... players) {
-        for(Player p : players) {
-            try {
-                Object playerConnection = PLAYER_CONNECTION.get(getHandle(p));
-                SEND_PACKET.invoke(playerConnection, packet);
-            } catch(IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-                e.printStackTrace();
+    static Class<?> innerClass(Class<?> parentClass, Predicate<Class<?>> classPredicate) throws ClassNotFoundException {
+        for (Class<?> innerClass : parentClass.getDeclaredClasses()) {
+            if (classPredicate.test(innerClass)) {
+                return innerClass;
             }
         }
+        throw new ClassNotFoundException("No class in " + parentClass.getCanonicalName() + " matches the predicate.");
     }
 
-    public static class Version {
-
-        private final String name;
-
-        private final String major;
-        private final String minor;
-
-        Version(String name) {
-            this.name = name;
-
-            String[] splitName = name.split("_");
-
-            this.major = splitName[0].substring(1) + "." + splitName[1];
-            this.minor = splitName[2].substring(1);
+    public static PacketConstructor findPacketConstructor(Class<?> packetClass, MethodHandles.Lookup lookup) throws Exception {
+        try {
+            MethodHandle constructor = lookup.findConstructor(packetClass, VOID_METHOD_TYPE);
+            return constructor::invoke;
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            // try below with Unsafe
         }
 
-        public String getName() { return name; }
-
-        public String getMajor() { return major; }
-        public String getMinor() { return minor; }
-
-        public boolean isBelow1_19() {
-            return  major.equals("1.7")  ||
-                    major.equals("1.8")  ||
-                    major.equals("1.9")  ||
-                    major.equals("1.10") ||
-                    major.equals("1.11") ||
-                    major.equals("1.12") ||
-                    major.equals("1.13") ||
-                    major.equals("1.14") ||
-                    major.equals("1.15") ||
-                    major.equals("1.16") ||
-                    major.equals("1.17") ||
-                    major.equals("1.18");
+        if (theUnsafe == null) {
+            synchronized (Reflection.class) {
+                if (theUnsafe == null) {
+                    Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+                    Field theUnsafeField = unsafeClass.getDeclaredField("theUnsafe");
+                    theUnsafeField.setAccessible(true);
+                    theUnsafe = theUnsafeField.get(null);
+                }
+            }
         }
 
+        MethodType allocateMethodType = MethodType.methodType(Object.class, Class.class);
+        MethodHandle allocateMethod = lookup.findVirtual(theUnsafe.getClass(), "allocateInstance", allocateMethodType);
+        return () -> allocateMethod.invoke(theUnsafe, packetClass);
     }
 
+    @FunctionalInterface
+    interface PacketConstructor {
+        Object invoke() throws Throwable;
+    }
 }

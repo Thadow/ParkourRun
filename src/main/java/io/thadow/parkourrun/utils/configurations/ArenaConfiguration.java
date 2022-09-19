@@ -14,11 +14,14 @@ public class ArenaConfiguration extends ConfigurationManager {
             configuration.addDefault("Extensions.Damage.Disable Fall Damage", true);
             configuration.addDefault("Extensions.Damage.Disable Player Damage", true);
             configuration.addDefault("Extensions.Damage.Disable Monster Damage", true);
+            configuration.addDefault("Extensions.Win.Last Player Win", true);
+            configuration.addDefault("Extensions.Win.Add Win On Tie", false);
             configuration.addDefault("Extensions.Lose.Add Lose On Disconnect/Leave", true);
             configuration.addDefault("Extensions.Lose.Add Lose On Tie", false);
             configuration.addDefault("Arena Name", configName);
             configuration.addDefault("Wait Time To Start", 15);
-            configuration.addDefault("Wait Time To Re-Enable", 5);
+            configuration.addDefault("Ending Time", 5);
+            configuration.addDefault("Re-Enable Time", 5);
             configuration.addDefault("Min Players", 2);
             configuration.addDefault("Max Players", 8);
             configuration.addDefault("Max Time", 120);

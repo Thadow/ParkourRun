@@ -138,7 +138,7 @@ public class ArenaListener implements Listener {
                             messageToPlayer = Utils.replace(messageToPlayer, "%nextCheckpoint%", nextCheckpoint);
                             messageToPlayer = Utils.replace(messageToPlayer, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
                             int currentTime = arena.getMaxTime();
-                            int now = arena.getDefMaxTime() - currentTime;
+                            int now = arena.getDefMaxTime() - currentTime - 1;
                             messageToPlayer = Utils.replace(messageToPlayer, "%time%", Utils.getFormattedTime(now));
                             messageToPlayer = Utils.format(messageToPlayer);
                             player.sendMessage(messageToPlayer);
@@ -207,7 +207,7 @@ public class ArenaListener implements Listener {
                                 messageToPlayer = Utils.replace(messageToPlayer, "%nextCheckpoint%", nextCheckpoint);
                                 messageToPlayer = Utils.replace(messageToPlayer, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
                                 int currentTime = arena.getMaxTime();
-                                int now = arena.getDefMaxTime() - currentTime;
+                                int now = arena.getDefMaxTime() - currentTime - 1;
                                 messageToPlayer = Utils.replace(messageToPlayer, "%time%", Utils.getFormattedTime(now));
                                 messageToPlayer = Utils.format(messageToPlayer);
                                 player.sendMessage(messageToPlayer);

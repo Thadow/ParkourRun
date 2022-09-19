@@ -27,7 +27,6 @@ public class CooldownManager {
         BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
         taskID = scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
             if (!executeStartGame()) {
-                arena.setTime(arena.getDefTime());
                 cancel(this.taskID);
             }
         }, 0L, 20L);
@@ -76,6 +75,8 @@ public class CooldownManager {
             String message = Main.getMessagesConfiguration().getString("Messages.Arena.Countdown Stopped");
             message = Utils.format(message);
             arena.broadcast(message);
+            arena.setArenaStatus(ArenaStatus.WAITING);
+            arena.setTime(arena.getDefTime());
             return false;
         }
     }
@@ -83,7 +84,7 @@ public class CooldownManager {
     public void startGameTime(Arena arena) {
         this.arena = arena;
         this.time = arena.getMaxTime();
-        arena.setMaxTime(time);
+        arena.setMaxTime(time, false, false);
 
         BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
         taskID = scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
