@@ -6,7 +6,6 @@ import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.managers.PlayerDataManager;
 import io.thadow.parkourrun.utils.Utils;
-import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
 import io.thadow.parkourrun.utils.configurations.ScoreboardConfiguration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,7 +67,7 @@ public class Scoreboard {
         if (type == ScoreboardType.LOBBY && ScoreboardConfiguration.getBoolean("Scoreboards.Lobby.Enabled")) {
             PlayerBoard playerBoard = Scoreboard.instance().getBoard(player);
             if (playerBoard == null) {
-                playerBoard = Scoreboard.instance().createBoard(player, "pkr_lobby_sb");
+                playerBoard = Scoreboard.instance().createBoard(player, "pkr_sb");
             }
             PlayerBoard board = playerBoard;
             List<String> lines = ScoreboardConfiguration.getListPath("Scoreboards.Lobby.Lines");
@@ -92,7 +91,7 @@ public class Scoreboard {
         if (ScoreboardConfiguration.getBoolean("Scoreboards.Waiting.Enabled") && type == ScoreboardType.WAITING) {
             PlayerBoard playerBoard = Scoreboard.instance().getBoard(player);
             if (playerBoard == null) {
-                playerBoard = Scoreboard.instance().createBoard(player, "pkr_waiting_sb");
+                playerBoard = Scoreboard.instance().createBoard(player, "pkr_sb");
             }
             PlayerBoard board = playerBoard;
             List<String> lines = ScoreboardConfiguration.getListPath("Scoreboards.Waiting.Lines");
@@ -117,7 +116,7 @@ public class Scoreboard {
         if (ScoreboardConfiguration.getBoolean("Scoreboards.Starting.Enabled") && type == ScoreboardType.STARTING) {
             PlayerBoard playerBoard = Scoreboard.instance().getBoard(player);
             if (playerBoard == null) {
-                playerBoard = Scoreboard.instance().createBoard(player, "pkr_starting_sb");
+                playerBoard = Scoreboard.instance().createBoard(player, "pkr_sb");
             }
             PlayerBoard board = playerBoard;
             List<String> lines = ScoreboardConfiguration.getListPath("Scoreboards.Starting.Lines");
@@ -143,7 +142,7 @@ public class Scoreboard {
         if (ScoreboardConfiguration.getBoolean("Scoreboards.In Game.Enabled") && type == ScoreboardType.PLAYING) {
             PlayerBoard playerBoard = Scoreboard.instance().getBoard(player);
             if (playerBoard == null) {
-                playerBoard = Scoreboard.instance().createBoard(player, "pkr_playing_sb");
+                playerBoard = Scoreboard.instance().createBoard(player, "pkr_sb");
             }
             PlayerBoard board = playerBoard;
             List<String> lines = ScoreboardConfiguration.getListPath("Scoreboards.In Game.Lines");
@@ -169,7 +168,7 @@ public class Scoreboard {
         if (ScoreboardConfiguration.getBoolean("Scoreboards.Ending.Enabled") && type == ScoreboardType.ENDING) {
             PlayerBoard playerBoard = Scoreboard.instance().getBoard(player);
             if (playerBoard == null) {
-                playerBoard = Scoreboard.instance().createBoard(player, "pkr_ending_sb");
+                playerBoard = Scoreboard.instance().createBoard(player, "pkr_sb");
             }
             PlayerBoard board = playerBoard;
             List<String> lines = ScoreboardConfiguration.getListPath("Scoreboards.Ending.Lines");
@@ -182,7 +181,7 @@ public class Scoreboard {
                 line = Utils.replace(line, "%loses%", String.valueOf(loses));
                 line = Utils.replace(line, "%arenaName%", arena.getArenaDisplayName());
                 line = Utils.replace(line, "%time%", Utils.getFormattedTime(arena.getMaxTime()));
-                line = arena.getWinner() != null ? Utils.replace(line, "%winner%", arena.getWinner().getName()) : Utils.replace(line, "%winner%", MessagesConfiguration.getPath("Messages.Arena.Nobody"));
+                line = arena.getWinner() != null ? Utils.replace(line, "%winner%", arena.getWinner().getName()) : Utils.replace(line, "%winner%", Main.getMessagesConfiguration().getString("Messages.Arena.Nobody"));
                 line = Utils.colorize(line);
                 newLines.add(line);
             }

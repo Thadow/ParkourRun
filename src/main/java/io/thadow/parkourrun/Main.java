@@ -10,10 +10,9 @@ import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.commands.LeaveCommand;
 import io.thadow.parkourrun.commands.ParkourRunCommand;
 import io.thadow.parkourrun.managers.PlayerDataManager;
+import io.thadow.parkourrun.managers.ScoreboardManager;
 import io.thadow.parkourrun.utils.configurations.MessagesConfig;
-import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
 import io.thadow.parkourrun.utils.configurations.ScoreboardConfiguration;
-import io.thadow.parkourrun.utils.lib.scoreboard.Scoreboard;
 import io.thadow.parkourrun.utils.storage.ActionCooldown;
 import io.thadow.parkourrun.utils.storage.Storage;
 import io.thadow.parkourrun.utils.storage.StorageType;
@@ -38,26 +37,25 @@ public class Main extends JavaPlugin {
         super.onEnable();
         instance = this;
         saveDefaultConfig();
-        setDebug(getConfiguration().getBoolean("Configuration.Debug"));
-        MessagesConfiguration.registerConfiguration();
-        messagesConfig = new MessagesConfig("messgaes", getDataFolder().getPath());
+        setDebug(getConfig().getBoolean("Configuration.Debug"));
+        messagesConfig = new MessagesConfig("messages", getDataFolder().getPath());
         ScoreboardConfiguration.registerConfiguration();
         getCommand("parkourrun").setExecutor(new ParkourRunCommand());
         getCommand("leave").setExecutor(new LeaveCommand());
         registerListeners(new ArenaListener(), new PlayerListener());
-        Scoreboard.run();
+        ScoreboardManager.getScoreboardManager().startScoreboards(1);
         ActionCooldown.createCooldown("cantWinMessage", 5);
-        if (getConfiguration().getString("Configuration.StorageType").equals("TRANSFORM")) {
-            String from = getConfiguration().getString("Configuration.Transform.From");
-            String to = getConfiguration().getString("Configuration.Transform.To");
+        if (getConfig().getString("Configuration.StorageType").equals("TRANSFORM")) {
+            String from = getConfig().getString("Configuration.Transform.From");
+            String to = getConfig().getString("Configuration.Transform.To");
             Bukkit.getConsoleSender().sendMessage("&aTransforming data!");
             PlayerDataManager.getPlayerDataManager().transformData(from, to);
             return;
         }
-        if (getConfiguration().getString("Configuration.StorageType").equals("MySQL")) {
+        if (getConfig().getString("Configuration.StorageType").equals("MySQL")) {
             Storage.getStorage().setupStorage(StorageType.MySQL);
         } else {
-            if (getConfiguration().getString("Configuration.StorageType").equals("LOCAL")) {
+            if (getConfig().getString("Configuration.StorageType").equals("LOCAL")) {
                 Storage.getStorage().setupStorage(StorageType.LOCAL);
             }
         }
@@ -97,9 +95,6 @@ public class Main extends JavaPlugin {
         Arrays.stream(listeners).forEach(listener -> getInstance().getServer().getPluginManager().registerEvents(listener, getInstance()));
     }
 
-    public static FileConfiguration getConfiguration() {
-        return Main.getInstance().getConfig();
-    }
 
     public static FileConfiguration getMessagesConfiguration() {
         return Main.messagesConfig.getConfiguration();

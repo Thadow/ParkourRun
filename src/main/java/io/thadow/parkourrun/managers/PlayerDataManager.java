@@ -7,7 +7,6 @@ import io.thadow.parkourrun.utils.storage.StorageType;
 import io.thadow.parkourrun.utils.storage.type.local.LocalStorage;
 import io.thadow.parkourrun.utils.storage.type.mysql.MySQLStorage;
 import org.bukkit.entity.Player;
-import sun.util.resources.en.LocaleNames_en_SG;
 
 import java.util.ArrayList;
 

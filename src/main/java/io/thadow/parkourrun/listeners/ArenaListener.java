@@ -7,10 +7,12 @@ import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.managers.CheckpointManager;
 import io.thadow.parkourrun.utils.Region;
 import io.thadow.parkourrun.utils.Utils;
+import io.thadow.parkourrun.utils.lib.titles.Titles;
 import io.thadow.parkourrun.utils.storage.ActionCooldown;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
+import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,6 +25,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.util.Vector;
 
 public class ArenaListener implements Listener {
@@ -48,7 +51,18 @@ public class ArenaListener implements Listener {
                     } else {
                         if (ActionCooldown.isOnCooldown("cantWinMessage", player))
                             return;
-                        player.sendMessage("Necesitas todos los checkpoints para ganar!");
+                        String message = Main.getMessagesConfiguration().getString("Messages.Arena.Checkpoint.Need All");
+                        message = Utils.replace(message, "%currentCheckpoint%", CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player).toString());
+                        String nextCheckpoint;
+                        if (CheckpointManager.getCheckpointManager().getPlayerNextCheckpoint(player) == null) {
+                            nextCheckpoint = "0";
+                        } else {
+                            nextCheckpoint = CheckpointManager.getCheckpointManager().getPlayerNextCheckpoint(player).toString();
+                        }
+                        message = Utils.replace(message, "%nextCheckpoint%", nextCheckpoint);
+                        message = Utils.replace(message, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
+                        message = Utils.format(message);
+                        player.sendMessage(message);
                         ActionCooldown.addCooldown("cantWinMessage", player, 5);
                     }
                 } else {
@@ -93,9 +107,12 @@ public class ArenaListener implements Listener {
                 return;
             Material clickedBlock = event.getClickedBlock().getType();
             Arena arena = ArenaManager.getArenaManager().getArena(player);
-            String plate = Main.getConfiguration().getString("Configuration.Arenas.Checkpoints.Plate");
+            String plate = Main.getInstance().getConfig().getString("Configuration.Arenas.Checkpoints.Plate");
+            if (arena.getArenaStatus() != ArenaStatus.PLAYING) {
+                return;
+            }
             if (clickedBlock == Material.valueOf(plate)) {
-                String underBlock = Main.getConfiguration().getString("Configuration.Arenas.Checkpoints.Under Block");
+                String underBlock = Main.getInstance().getConfig().getString("Configuration.Arenas.Checkpoints.Under Block");
                 if (Utils.isNearBlock(player, 2, underBlock)) {
                     int currentCheckpointID = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);
                     if (currentCheckpointID == 0) {
@@ -110,7 +127,57 @@ public class ArenaListener implements Listener {
                         if (region.isInside(player.getLocation())) {
                             CheckpointManager.getCheckpointManager().setPlayerCurrentCheckpoint(arena, player, 1);
                             CheckpointManager.getCheckpointManager().setPlayerNextCheckpoint(arena, player, 2);
-                            player.sendMessage("Checkpoint: " + CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player));
+                            String messageToPlayer = Main.getMessagesConfiguration().getString("Messages.Arena.Checkpoint.On Get Checkpoint.Message.To Player");
+                            messageToPlayer = Utils.replace(messageToPlayer, "%checkpoint%", CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player).toString());
+                            String nextCheckpoint;
+                            if (CheckpointManager.getCheckpointManager().getPlayerNextCheckpoint(player) > CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena) ) {
+                                nextCheckpoint = Main.getMessagesConfiguration().getString("Messages.Arena.None");
+                            } else {
+                                nextCheckpoint = CheckpointManager.getCheckpointManager().getPlayerNextCheckpoint(player).toString();
+                            }
+                            messageToPlayer = Utils.replace(messageToPlayer, "%nextCheckpoint%", nextCheckpoint);
+                            messageToPlayer = Utils.replace(messageToPlayer, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
+                            int currentTime = arena.getMaxTime();
+                            int now = arena.getDefMaxTime() - currentTime;
+                            messageToPlayer = Utils.replace(messageToPlayer, "%time%", Utils.getFormattedTime(now));
+                            messageToPlayer = Utils.format(messageToPlayer);
+                            player.sendMessage(messageToPlayer);
+
+                            if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Enabled")) {
+                                String title = Main.getMessagesConfiguration().getString("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Title");
+                                title = Utils.replace(title, "%checkpoint%", CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player).toString());
+                                title = Utils.replace(title, "%nextCheckpoint%", nextCheckpoint);
+                                title = Utils.replace(title, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
+                                title = Utils.replace(title, "%time%", Utils.getFormattedTime(now));
+                                title = Utils.colorize(title);
+
+                                String subTitle = Main.getMessagesConfiguration().getString("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.SubTitle");
+                                subTitle = Utils.replace(subTitle, "%checkpoint%", CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player).toString());
+                                subTitle = Utils.replace(subTitle, "%nextCheckpoint%", nextCheckpoint);
+                                subTitle = Utils.replace(subTitle, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
+                                subTitle = Utils.replace(subTitle, "%time%", Utils.getFormattedTime(now));
+                                subTitle = Utils.colorize(subTitle);
+
+                                int fadeIn = Main.getMessagesConfiguration().getInt("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Fade In");
+                                int stay = Main.getMessagesConfiguration().getInt("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Stay");
+                                int fadeOut = Main.getMessagesConfiguration().getInt("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Fade Out");
+
+                                Titles.sendTitle(player, fadeIn, stay, fadeOut, title, subTitle);
+                            }
+
+                            if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Checkpoint.On Get Checkpoint.Message.Broadcast.Enabled")) {
+                                String broadcast = Main.getMessagesConfiguration().getString("Messages.Arena.Checkpoint.On Get Checkpoint.Message.Broadcast.Message");
+                                broadcast = Utils.replace(broadcast, "%checkpoint%", CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player).toString());
+                                broadcast = Utils.replace(broadcast, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
+                                broadcast = Utils.replace(broadcast, "%time%", Utils.getFormattedTime(now));
+                                broadcast = Utils.replace(broadcast, "%player%", player.getName());
+                                broadcast = Utils.format(broadcast);
+                                arena.broadcast(broadcast);
+                            }
+
+                            if (Main.getInstance().getConfig().getBoolean("Configuration.Arenas.Checkpoints.Firework.Enabled")) {
+                                firework(player);
+                            }
                         }
                     } else {
                         int nextPlayerCheckpoint = CheckpointManager.getCheckpointManager().getPlayerNextCheckpoint(player);
@@ -129,13 +196,78 @@ public class ArenaListener implements Listener {
                             if (region.isInside(player.getLocation())) {
                                 CheckpointManager.getCheckpointManager().setPlayerCurrentCheckpoint(arena, player, currentCheckpointID + 1);
                                 CheckpointManager.getCheckpointManager().setPlayerNextCheckpoint(arena, player, nextPlayerCheckpoint + 1);
-                                player.sendMessage("Checkpoint: " + CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player));
+                                String messageToPlayer = Main.getMessagesConfiguration().getString("Messages.Arena.Checkpoint.On Get Checkpoint.Message.To Player");
+                                messageToPlayer = Utils.replace(messageToPlayer, "%checkpoint%", CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player).toString());
+                                String nextCheckpoint;
+                                if (CheckpointManager.getCheckpointManager().getPlayerNextCheckpoint(player) > CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena) ) {
+                                    nextCheckpoint = Main.getMessagesConfiguration().getString("Messages.Arena.None");
+                                } else {
+                                    nextCheckpoint = CheckpointManager.getCheckpointManager().getPlayerNextCheckpoint(player).toString();
+                                }
+                                messageToPlayer = Utils.replace(messageToPlayer, "%nextCheckpoint%", nextCheckpoint);
+                                messageToPlayer = Utils.replace(messageToPlayer, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
+                                int currentTime = arena.getMaxTime();
+                                int now = arena.getDefMaxTime() - currentTime;
+                                messageToPlayer = Utils.replace(messageToPlayer, "%time%", Utils.getFormattedTime(now));
+                                messageToPlayer = Utils.format(messageToPlayer);
+                                player.sendMessage(messageToPlayer);
+
+                                if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Enabled")) {
+                                    String title = Main.getMessagesConfiguration().getString("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Title");
+                                    title = Utils.replace(title, "%checkpoint%", CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player).toString());
+                                    title = Utils.replace(title, "%nextCheckpoint%", nextCheckpoint);
+                                    title = Utils.replace(title, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
+                                    title = Utils.replace(title, "%time%", Utils.getFormattedTime(now));
+                                    title = Utils.colorize(title);
+
+                                    String subTitle = Main.getMessagesConfiguration().getString("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.SubTitle");
+                                    subTitle = Utils.replace(subTitle, "%checkpoint%", CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player).toString());
+                                    subTitle = Utils.replace(subTitle, "%nextCheckpoint%", nextCheckpoint);
+                                    subTitle = Utils.replace(subTitle, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
+                                    subTitle = Utils.replace(subTitle, "%time%", Utils.getFormattedTime(now));
+                                    subTitle = Utils.colorize(subTitle);
+
+                                    int fadeIn = Main.getMessagesConfiguration().getInt("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Fade In");
+                                    int stay = Main.getMessagesConfiguration().getInt("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Stay");
+                                    int fadeOut = Main.getMessagesConfiguration().getInt("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Fade Out");
+
+                                    Titles.sendTitle(player, fadeIn, stay, fadeOut, title, subTitle);
+                                }
+
+                                if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Checkpoint.On Get Checkpoint.Message.Broadcast.Enabled")) {
+                                    String broadcast = Main.getMessagesConfiguration().getString("Messages.Arena.Checkpoint.On Get Checkpoint.Message.Broadcast.Message");
+                                    broadcast = Utils.replace(broadcast, "%checkpoint%", CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player).toString());
+                                    broadcast = Utils.replace(broadcast, "%totalCheckpoints%", CheckpointManager.getCheckpointManager().getTotalCheckpoints(arena).toString());
+                                    broadcast = Utils.replace(broadcast, "%time%", Utils.getFormattedTime(now));
+                                    broadcast = Utils.replace(broadcast, "%player%", player.getName());
+                                    broadcast = Utils.format(broadcast);
+                                    arena.broadcast(broadcast);
+                                }
+
+                                if (Main.getInstance().getConfig().getBoolean("Configuration.Arenas.Checkpoints.Firework.Enabled")) {
+                                    firework(player);
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    public void firework(Player player) {
+        Firework firework = (Firework) player.getWorld().spawnEntity(player.getLocation(), EntityType.FIREWORK);
+        FireworkMeta fireworkMeta = firework.getFireworkMeta();
+        FireworkEffect.Type type = FireworkEffect.Type.BALL;
+        Color color_1 = Color.AQUA;
+        Color color_2 = Color.LIME;
+        Color color_3 = Color.YELLOW;
+        Color fade = Color.WHITE;
+
+        FireworkEffect effect = FireworkEffect.builder().withColor(color_1, color_2, color_3).withFade(fade).with(type).build();
+        fireworkMeta.addEffect(effect);
+        fireworkMeta.setPower(1);
+        firework.setFireworkMeta(fireworkMeta);
     }
 
     @EventHandler
@@ -185,7 +317,7 @@ public class ArenaListener implements Listener {
 
     @EventHandler
     public void onPlayerDamageByEntity(EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof Player) {
+        if (event.getDamager() instanceof Monster) {
             Player player = (Player) event.getEntity();
             Arena arena = ArenaManager.getArenaManager().getArena(player);
             if (arena != null) {
@@ -252,7 +384,7 @@ public class ArenaListener implements Listener {
         if (event.isCancelled()) {
             return;
         }
-        if (Main.getConfiguration().getBoolean("Configuration.Arenas.Per Arena Chat")) {
+        if (Main.getInstance().getConfig().getBoolean("Configuration.Arenas.Per Arena Chat")) {
             Arena arena = ArenaManager.getArenaManager().getArena(player);
             if (arena != null) {
                 for (Player players : Bukkit.getOnlinePlayers()) {

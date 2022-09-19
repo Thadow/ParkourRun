@@ -76,6 +76,7 @@ public class MessagesConfig extends ConfigurationManager {
 
             configuration.addDefault("Messages.Arena.Already In Arena", "%prefix% &cYa estas en una arena!");
             configuration.addDefault("Messages.Arena.Nobody", "Nadie");
+            configuration.addDefault("Messages.Arena.None", "Ninguno");
             configuration.addDefault("Messages.Arena.Unknown Arena", "%prefix% &cArena no valida");
             configuration.addDefault("Messages.Arena.In Game", "%prefix% &cLa arena ya ha comenzado!");
             configuration.addDefault("Messages.Arena.Ending", "%prefix% &cLa arena esta terminando!");
@@ -84,6 +85,16 @@ public class MessagesConfig extends ConfigurationManager {
             configuration.addDefault("Messages.Arena.Player Join", "&a%player% &ese ha unido (&b%current%&e/&b%max%&e)");
             configuration.addDefault("Messages.Arena.Player Leave In Waiting", "&a%player% &cse ha ido &e(&b%current%&e/&b%max%&e)");
             configuration.addDefault("Messages.Arena.Player Leave In Game", "&a%player% &esalió");
+
+            configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Enabled", true);
+            configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Fade In", 20);
+            configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Stay", 30);
+            configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Fade Out", 10);
+            configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Title", "&aHaz alcanzado un checkpoint!");
+            configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.SubTitle", "&aEn: &e%time%");
+            configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Message.To Player", "&aHaz alcanzado el checkpoint: %checkpoint%! Siguiente: &e%nextCheckpoint%");
+            configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Broadcast.Enabled", true);
+            configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Broadcast.Message", "&aEl jugador &e%player% &aha llegado al checkpoint &e%checkpoint% &aen &e%time%&a!");
 
 
             configuration.addDefault("Messages.Arena.Starting In.Message", "&eEl juego iniciara en &c%seconds% &esegundos!");

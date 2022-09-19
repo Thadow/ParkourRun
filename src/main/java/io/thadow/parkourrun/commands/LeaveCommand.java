@@ -1,9 +1,11 @@
 package io.thadow.parkourrun.commands;
 
+import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.utils.Permission;
+import io.thadow.parkourrun.utils.Utils;
 import org.bukkit.entity.Player;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -18,7 +20,9 @@ public class LeaveCommand implements CommandExecutor {
         if (player.hasPermission("parkourrun.commands.leave")) {
             final Arena arena = ArenaManager.getArenaManager().getArena(player);
             if (arena == null) {
-                player.sendMessage("Este comando solo se puede ejecutar en arena");
+                String message = Main.getMessagesConfiguration().getString("Messages.Commands.Leave.Can't Leave");
+                message = Utils.format(message);
+                player.sendMessage(message);
                 return true;
             }
             ArenaManager.getArenaManager().removePlayer(player, arena.getArenaStatus() == ArenaStatus.ENDING);

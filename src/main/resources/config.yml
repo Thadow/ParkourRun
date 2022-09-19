@@ -14,5 +14,7 @@ Configuration:
   Arenas:
     Per Arena Chat: true
     Checkpoints:
+      Firework:
+        Enabled: true
       Under Block: EMERALD_BLOCK
       Plate: GOLD_PLATE

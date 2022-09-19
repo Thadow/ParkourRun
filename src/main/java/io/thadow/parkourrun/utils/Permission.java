@@ -1,12 +1,12 @@
 package io.thadow.parkourrun.utils;
 
-import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
+import io.thadow.parkourrun.Main;
 import org.bukkit.entity.Player;
 
 public class Permission {
 
     public static void deny(Player player, String permNode) {
-        String message = MessagesConfiguration.getPath("No Permission");
+        String message = Main.getMessagesConfiguration().getString("No Permission");
         message = Utils.replace(message, "%permNode%", permNode);
         message = Utils.format(message);
         player.sendMessage(message);

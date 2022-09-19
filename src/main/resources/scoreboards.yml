@@ -1,7 +1,7 @@
 Scoreboards:
-  Update: 10
   Lobby:
     Enabled: true
+    Update: 10
     Title: "&eParkourRun"
     Lines:
       - "%server_time_yyyy/MM/dd%"
@@ -13,6 +13,7 @@ Scoreboards:
       - "&7mc.myserver.com"
   Waiting:
     Enabled: true
+    Update: 10
     Title: "&eWaiting"
     Lines:
       - "%server_time_yyyy/MM/dd%"
@@ -24,6 +25,7 @@ Scoreboards:
       - "&7mc.myserver.com"
   Starting:
     Enabled: true
+    Update: 10
     Title: "&eStarting"
     Lines:
       - "%server_time_yyyy/MM/dd%"
@@ -35,6 +37,7 @@ Scoreboards:
       - "&7mc.myserver.com"
   In Game:
     Enabled: true
+    Update: 10
     Title: "&eParkourRun"
     Lines:
       - "%server_time_yyyy/MM/dd%"
@@ -46,6 +49,7 @@ Scoreboards:
       - "&7mc.myserver.com"
   Ending:
     Enabled: true
+    Update: 10
     Title: "&eParkourRun"
     Lines:
       - "%server_time_yyyy/MM/dd%"

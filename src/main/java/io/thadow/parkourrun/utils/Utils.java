@@ -1,8 +1,8 @@
 package io.thadow.parkourrun.utils;
 
+import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
-import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -10,9 +10,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class Utils {
     public static String colorize(String message) {
@@ -20,7 +18,7 @@ public class Utils {
     }
 
     public static String format(String message) {
-        message = replace(message,"%prefix%", MessagesConfiguration.getPrefix());
+        message = replace(message,"%prefix%", Main.getMessagesConfiguration().getString("Prefix"));
         message = colorize(message);
         return message;
     }

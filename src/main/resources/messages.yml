@@ -58,6 +58,7 @@ Messages:
           - "&m                                         "
     Already In Arena: "%prefix% &cYa estas en una arena!"
     Nobody: "Nadie"
+    None: "Ninguno"
     Unknown Arena: "%prefix% &cArena no valida"
     In Game: "%prefix% &cLa arena ya ha comenzado!"
     Ending: "%prefix% &cLa arena esta terminando!"
@@ -66,6 +67,21 @@ Messages:
     Player Join: "&a%player% &ese ha unido (&b%current%&e/&b%max%&e)"
     Player Leave In Waiting: "&a%player% &cse ha ido &e(&b%current%&e/&b%max%&e)"
     Player Leave In Game: "&a%player% &esalió"
+    Checkpoint:
+      Need All: "&cNecesitas todos los checkpoints para ganar!"
+      On Get Checkpoint:
+        Titles:
+          Enabled: true
+          Fade In: 20
+          Stay: 30
+          Fade Out: 10
+          Title: "&aHaz alcazando un checkpoint!"
+          SubTitle: "&aEn: &e%time%"
+        Message:
+          To Player: "&aHaz alcanzado el checkpoint: &e%checkpoint%&a! en: &e%time% &aSiguiente: %e%nextCheckpoint%"
+          Broadcast:
+            Enabled: true
+            Message: "&aEl jugador &e%player% &aha llegado al checkpoint &e%checkpoint% &aen &e%time%&a!"
     Starting In:
       Message: "&eEl juego iniciara en &c%seconds% &esegundos!"
       Titles:

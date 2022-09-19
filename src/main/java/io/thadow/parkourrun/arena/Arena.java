@@ -5,7 +5,6 @@ import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.CooldownManager;
 import io.thadow.parkourrun.utils.configurations.ArenaConfiguration;
 import io.thadow.parkourrun.utils.Utils;
-import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
 import io.thadow.parkourrun.utils.lib.titles.Titles;
 import io.thadow.parkourrun.utils.storage.Storage;
 import org.bukkit.*;
@@ -119,18 +118,17 @@ public class Arena {
         arenaCorner2 = configuration.getString("Arena Zone Corner 2");
 
         int totalCheckpoints = configuration.getInt("Total Checkpoints");
-        Map<Integer, String> checkpoints = new HashMap<>();
+        Map<Integer, String> checkpoints2 = new HashMap<>();
         if (configuration.contains("Checkpoints.1")) {
             for (int checkpoint = 1; checkpoint <= totalCheckpoints; checkpoint++) {
                 String location = "Checkpoints." + checkpoint + ".Location";
                 String corner1 = "Checkpoints." + checkpoint + ".Corner 1";
                 String corner2 = "Checkpoints." + checkpoint + ".Corner 2";
                 String full = configuration.getString(location) + "/-/" + configuration.getString(corner1) + "/-/" + configuration.getString(corner2);
-                checkpoints.put(checkpoint, full);
-                Bukkit.getConsoleSender().sendMessage("Checkpoint: " + checkpoint);
+                checkpoints2.put(checkpoint, full);
             }
         }
-        this.checkpoints = checkpoints;
+        this.checkpoints = checkpoints2;
 
         enabled = configuration.getBoolean("Enabled");
         if (!enabled) {
@@ -179,9 +177,12 @@ public class Arena {
     public void addCheckpoint(int id, String location) {
         getCheckpoints().put(id, location);
         String[] locationSplit = location.split("/-/");
+        int totalCheckpoints = arenaConfig.getInt("Total Checkpoints");
+        int newTotal = totalCheckpoints + 1;
         arenaConfig.set("Checkpoints." + id + ".Corner 1", locationSplit[1]);
         arenaConfig.set("Checkpoints." + id + ".Corner 2", locationSplit[2]);
         arenaConfig.set("Checkpoints." + id + ".Location", locationSplit[0]);
+        arenaConfig.set("Total Checkpoints", newTotal);
         arenaConfig.save();
     }
 
@@ -298,7 +299,7 @@ public class Arena {
 
     public void setSpawn(Location spawn, String locationString) {
         this.spawn = spawn;
-        arenaConfig.set("Location Spawn", locationString);
+        arenaConfig.set("Spawn Location", locationString);
         arenaConfig.save();
     }
 
@@ -347,126 +348,133 @@ public class Arena {
 
     public void addPlayer(Player player) {
         if (arenaID == null || arenaID.isEmpty()) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Arena ID");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Arena ID");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (arenaDisplayName == null || arenaDisplayName.isEmpty()) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Arena Name");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Arena Name");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getMinPlayers() == 0) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Min Players");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Min Players");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getMaxPlayers() == 0) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Max Players");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Max Players");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getMinPlayers() > getMaxPlayers()) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Min > Max");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Min > Max");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getSpawn() == null) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Spawn Location");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Spawn Location");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getWaitLocation() == null) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Wait Location");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Wait Location");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getTime() == 0) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Wait To Start");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Wait To Start");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getReEnableCount() == 0) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Wait To Re-Enable");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Wait To Re-Enable");
+            message = Utils.replace(message, "%arenaID%", arenaID);
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return;
+        }
+        if (getMaxTime() == 0) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Max Time");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (winCorner1 == null || winCorner1.isEmpty()) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Win Zone Corner");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Win Zone Corner");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (winCorner2 == null || winCorner2.isEmpty()) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Win Zone Corner");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Win Zone Corner");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (arenaCorner1 == null || arenaCorner1.isEmpty()) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Arena Zone Corner");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Arena Zone Corner");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (arenaCorner2 == null || arenaCorner2.isEmpty()) {
-            String message = MessagesConfiguration.getPath("Messages.Invalid Arena Parameter.Arena Zone Corner");
+            String message = Main.getMessagesConfiguration().getString("Messages.Invalid Arena Parameter.Arena Zone Corner");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getArenaStatus() == ArenaStatus.PLAYING) {
-            String message = MessagesConfiguration.getPath("Messages.Arena.In Game");
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.In Game");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getArenaStatus() == ArenaStatus.ENDING) {
-            String message = MessagesConfiguration.getPath("Messages.Arena.Ending");
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Ending");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (getPlayers().size() == getMaxPlayers()) {
-            String message = MessagesConfiguration.getPath("Messages.Arena.Full");
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Full");
             message = Utils.replace(message, "%arenaID%", arenaID);
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         if (!isEnabled()) {
-            String message = MessagesConfiguration.getPath("Messages.Arena.Arena Disabled");
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Arena Disabled");
             message = Utils.format(message);
             player.sendMessage(message);
             return;
         }
         players.add(player);
         player.teleport(getWaitLocation());
-        String message = MessagesConfiguration.getPath("Messages.Arena.Player Join");
+        String message = Main.getMessagesConfiguration().getString("Messages.Arena.Player Join");
         message = Utils.replace(message, "%player%", player.getName());
         message = Utils.replace(message, "%current%", String.valueOf(getPlayers().size()));
         message = Utils.replace(message, "%max%", String.valueOf(getMaxPlayers()));
@@ -478,7 +486,7 @@ public class Arena {
     public void removePlayer(Player player) {
         players.remove(player);
         if (getArenaStatus() == ArenaStatus.WAITING || getArenaStatus() == ArenaStatus.STARTING) {
-            String message = MessagesConfiguration.getPath("Messages.Arena.Player Leave In Waiting");
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Player Leave In Waiting");
             message = Utils.replace(message, "%player%", player.getName());
             message = Utils.replace(message, "%current%", String.valueOf(getPlayers().size()));
             message = Utils.replace(message, "%max%", String.valueOf(getMaxPlayers()));
@@ -491,7 +499,7 @@ public class Arena {
             }
         }
         if (getArenaStatus() == ArenaStatus.PLAYING) {
-            String message = MessagesConfiguration.getPath("Messages.Arena.Player Leave In Game");
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Player Leave In Game");
             message = Utils.replace(message, "%player%", player.getName());
             message = Utils.replace(message, "%current%", String.valueOf(getPlayers().size()));
             message = Utils.replace(message, "%max%", String.valueOf(getMaxPlayers()));
@@ -553,7 +561,7 @@ public class Arena {
         if (!enabled) {
             teleportSpawn(true);
             arenaStatus = ArenaStatus.DISABLED;
-            String message = MessagesConfiguration.getPath("Messages.Arena.Parameter Changed.Arena Disabled.Message To Players");
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Disabled.Message To Players");
             message = Utils.format(message);
             broadcast(message);
         } else {
@@ -585,23 +593,23 @@ public class Arena {
             setCurrentPlayerCheckpoint(players, 0);
             players.teleport(getSpawn());
         }
-        List<String> messages = MessagesConfiguration.getListPath("Messages.Arena.Started.Message");
+        List<String> messages = Main.getMessagesConfiguration().getStringList("Messages.Arena.Started.Message");
         for (String message : messages) {
             message = Utils.format(message);
             broadcast(message);
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Started.Titles.Enabled")) {
-            int fadeIn = MessagesConfiguration.getInt("Messages.Arena.Started.Titles.Fade In");
-            int fadeOut = MessagesConfiguration.getInt("Messages.Arena.Started.Titles.Fade Out");
-            int stay = MessagesConfiguration.getInt("Messages.Arena.Started.Titles.Stay");
-            String title = MessagesConfiguration.getPath("Messages.Arena.Started.Titles.Title");
-            String subTitle = MessagesConfiguration.getPath("Messages.Arena.Started.Titles.SubTitle");
+        if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Started.Titles.Enabled")) {
+            int fadeIn = Main.getMessagesConfiguration().getInt("Messages.Arena.Started.Titles.Fade In");
+            int fadeOut = Main.getMessagesConfiguration().getInt("Messages.Arena.Started.Titles.Fade Out");
+            int stay = Main.getMessagesConfiguration().getInt("Messages.Arena.Started.Titles.Stay");
+            String title = Main.getMessagesConfiguration().getString("Messages.Arena.Started.Titles.Title");
+            String subTitle = Main.getMessagesConfiguration().getString("Messages.Arena.Started.Titles.SubTitle");
             for (Player players : getPlayers()) {
                 Titles.sendTitle(players, fadeIn, stay, fadeOut, Utils.colorize(title), Utils.colorize(subTitle));
             }
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Started.Sound.Enabled")) {
-            String soundPath = MessagesConfiguration.getPath("Messages.Arena.Started.Sound.Sound");
+        if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Started.Sound.Enabled")) {
+            String soundPath = Main.getMessagesConfiguration().getString("Messages.Arena.Started.Sound.Sound");
             for (Player players : getPlayers()) {
                 Utils.playSound(players, soundPath);
             }
@@ -613,7 +621,7 @@ public class Arena {
             teleportSpawn(true);
             return;
         }
-        List<String> messages = MessagesConfiguration.getListPath("Messages.Arena.Tie.Message");
+        List<String> messages = Main.getMessagesConfiguration().getStringList("Messages.Arena.Tie.Message");
         for (String message : messages) {
                 message = Utils.format(message);
                 broadcast(message);
@@ -628,18 +636,18 @@ public class Arena {
                 Storage.getStorage().addWin(players);
             }
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Tie.Titles.Enabled")) {
-            int fadeIn = MessagesConfiguration.getInt("Messages.Arena.Tie.Titles.Fade In");
-            int fadeOut = MessagesConfiguration.getInt("Messages.Arena.Tie.Titles.Fade Out");
-            int stay = MessagesConfiguration.getInt("Messages.Arena.Tie.Titles.Stay");
-            String title = MessagesConfiguration.getPath("Messages.Arena.Tie.Titles.Title");
-            String subTitle = MessagesConfiguration.getPath("Messages.Arena.Tie.Titles.SubTitle");
+        if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Tie.Titles.Enabled")) {
+            int fadeIn = Main.getMessagesConfiguration().getInt("Messages.Arena.Tie.Titles.Fade In");
+            int fadeOut = Main.getMessagesConfiguration().getInt("Messages.Arena.Tie.Titles.Fade Out");
+            int stay = Main.getMessagesConfiguration().getInt("Messages.Arena.Tie.Titles.Stay");
+            String title = Main.getMessagesConfiguration().getString("Messages.Arena.Tie.Titles.Title");
+            String subTitle = Main.getMessagesConfiguration().getString("Messages.Arena.Tie.Titles.SubTitle");
             for (Player players : getPlayers()) {
                 Titles.sendTitle(players, fadeIn, stay, fadeOut, Utils.colorize(title), Utils.colorize(subTitle));
             }
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Tie.Sound.Enabled")) {
-            String soundPath = MessagesConfiguration.getPath("Messages.Arena.Tie.Sound.Sound");
+        if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Tie.Sound.Enabled")) {
+            String soundPath = Main.getMessagesConfiguration().getString("Messages.Arena.Tie.Sound.Sound");
             for (Player players : getPlayers()) {
                 Utils.playSound(players, soundPath);
             }
@@ -665,39 +673,39 @@ public class Arena {
             }
         }
         setArenaStatus(ArenaStatus.ENDING);
-        List<String> messages = MessagesConfiguration.getListPath("Messages.Arena.Ended.Message");
+        List<String> messages = Main.getMessagesConfiguration().getStringList("Messages.Arena.Ended.Message");
         for (String message : messages) {
             message = Utils.replace(message, "%winner%", winner.getName());
             message = Utils.format(message);
             broadcast(message);
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Ended.Titles.Winner.Enabled")) {
-            int fadeIn = MessagesConfiguration.getInt("Messages.Arena.Ended.Titles.Winner.Fade In");
-            int stay = MessagesConfiguration.getInt("Messages.Arena.Ended.Titles.Winner.Stay");
-            int fadeOut = MessagesConfiguration.getInt("Messages.Arena.Ended.Titles.Winner.Fade Out");
-            String title = MessagesConfiguration.getPath("Messages.Arena.Ended.Titles.Winner.Title");
-            String subTitle = MessagesConfiguration.getPath("Messages.Arena.Ended.Titles.Winner.SubTitle");
+        if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Ended.Titles.Winner.Enabled")) {
+            int fadeIn = Main.getMessagesConfiguration().getInt("Messages.Arena.Ended.Titles.Winner.Fade In");
+            int stay = Main.getMessagesConfiguration().getInt("Messages.Arena.Ended.Titles.Winner.Stay");
+            int fadeOut = Main.getMessagesConfiguration().getInt("Messages.Arena.Ended.Titles.Winner.Fade Out");
+            String title = Main.getMessagesConfiguration().getString("Messages.Arena.Ended.Titles.Winner.Title");
+            String subTitle = Main.getMessagesConfiguration().getString("Messages.Arena.Ended.Titles.Winner.SubTitle");
             Titles.sendTitle(winner, fadeIn, stay, fadeOut, Utils.colorize(title), Utils.colorize(subTitle));
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Ended.Titles.Losers.Enabled")) {
-            int fadeIn = MessagesConfiguration.getInt("Messages.Arena.Ended.Titles.Losers.Fade In");
-            int stay = MessagesConfiguration.getInt("Messages.Arena.Ended.Titles.Losers.Stay");
-            int fadeOut = MessagesConfiguration.getInt("Messages.Arena.Ended.Titles.Losers.Fade Out");
-            String title = MessagesConfiguration.getPath("Messages.Arena.Ended.Titles.Losers.Title");
-            String subTitle = MessagesConfiguration.getPath("Messages.Arena.Ended.Titles.Losers.SubTitle");
+        if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Ended.Titles.Losers.Enabled")) {
+            int fadeIn = Main.getMessagesConfiguration().getInt("Messages.Arena.Ended.Titles.Losers.Fade In");
+            int stay = Main.getMessagesConfiguration().getInt("Messages.Arena.Ended.Titles.Losers.Stay");
+            int fadeOut = Main.getMessagesConfiguration().getInt("Messages.Arena.Ended.Titles.Losers.Fade Out");
+            String title = Main.getMessagesConfiguration().getString("Messages.Arena.Ended.Titles.Losers.Title");
+            String subTitle = Main.getMessagesConfiguration().getString("Messages.Arena.Ended.Titles.Losers.SubTitle");
             for (Player players : getPlayers()) {
                 if (!players.getName().equalsIgnoreCase(getWinner().getName())) {
                     Titles.sendTitle(players, fadeIn, stay, fadeOut, Utils.colorize(title), Utils.colorize(subTitle));
                 }
             }
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Ended.Sound.Enabled")) {
-            String soundPath = MessagesConfiguration.getPath("Messages.Arena.Ended.Sound.Sound");
+        if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Ended.Sound.Enabled")) {
+            String soundPath = Main.getMessagesConfiguration().getString("Messages.Arena.Ended.Sound.Sound");
             for (Player players : getPlayers()) {
                 Utils.playSound(players, soundPath);
             }
         }
-        if (MessagesConfiguration.getBoolean("Messages.Arena.Ended.Fireworks.Enabled")) {
+        if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Ended.Fireworks.Enabled")) {
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
             fireworksTaskID = scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
                 if (getArenaStatus() == ArenaStatus.ENDING  && getPlayers().contains(getWinner()) && getWinner() != null) {
@@ -737,9 +745,6 @@ public class Arena {
 
 
     public void teleportSpawn(boolean disabling) {
-        for (Player players : getPlayers()) {
-            players.teleport(players.getWorld().getSpawnLocation());
-        }
         if (disabling) {
             getPlayers().clear();
             return;
