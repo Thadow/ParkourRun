@@ -11,7 +11,7 @@ import io.thadow.parkourrun.commands.LeaveCommand;
 import io.thadow.parkourrun.commands.ParkourRunCommand;
 import io.thadow.parkourrun.managers.PlayerDataManager;
 import io.thadow.parkourrun.managers.ScoreboardManager;
-import io.thadow.parkourrun.utils.configurations.MessagesConfig;
+import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
 import io.thadow.parkourrun.utils.configurations.ScoreboardConfiguration;
 import io.thadow.parkourrun.utils.storage.ActionCooldown;
 import io.thadow.parkourrun.utils.storage.Storage;
@@ -28,7 +28,7 @@ import java.util.Arrays;
 
 public class Main extends JavaPlugin {
     private static Main instance;
-    private static MessagesConfig messagesConfig;
+    private static MessagesConfiguration messagesConfiguration;
     private static boolean mysql = false;
     private static boolean debug = false;
 
@@ -38,7 +38,7 @@ public class Main extends JavaPlugin {
         instance = this;
         saveDefaultConfig();
         setDebug(getConfig().getBoolean("Configuration.Debug"));
-        messagesConfig = new MessagesConfig("messages", getDataFolder().getPath());
+        messagesConfiguration = new MessagesConfiguration("messages", getDataFolder().getPath());
         ScoreboardConfiguration.registerConfiguration();
         getCommand("parkourrun").setExecutor(new ParkourRunCommand());
         getCommand("leave").setExecutor(new LeaveCommand());
@@ -97,7 +97,7 @@ public class Main extends JavaPlugin {
 
 
     public static FileConfiguration getMessagesConfiguration() {
-        return Main.messagesConfig.getConfiguration();
+        return Main.messagesConfiguration.getConfiguration();
     }
 
 

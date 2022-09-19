@@ -6,9 +6,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MessagesConfig extends ConfigurationManager {
+public class MessagesConfiguration extends ConfigurationManager {
 
-    public MessagesConfig(String configName, String dir) {
+    public MessagesConfiguration(String configName, String dir) {
         super(configName, dir);
         if (isFirstTime()) {
             YamlConfiguration configuration = getConfiguration();
