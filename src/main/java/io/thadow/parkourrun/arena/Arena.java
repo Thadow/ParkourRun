@@ -308,13 +308,6 @@ public class Arena {
         this.arenaID = arenaID;
     }
 
-    public void setTime(int time) {
-        this.time = time;
-        setDefTime(time);
-        arenaConfig.set("Wait Time To Start", time);
-        arenaConfig.save();
-    }
-
     public int getDefTime() {
         return defTime;
     }
@@ -440,8 +433,9 @@ public class Arena {
     }
 
     public void setArenaStatus(ArenaStatus arenaStatus) {
-        Bukkit.getPluginManager().callEvent(new ArenaChangeStatusEvent(this, this.arenaStatus, arenaStatus));
+        ArenaStatus oldStatus = this.arenaStatus;
         this.arenaStatus = arenaStatus;
+        Bukkit.getPluginManager().callEvent(new ArenaChangeStatusEvent(this, oldStatus, arenaStatus));
     }
 
     public ArenaStatus getArenaStatus() {
@@ -650,8 +644,6 @@ public class Arena {
         }
         if (getPlayers().size() < minPlayers && getArenaStatus() == ArenaStatus.STARTING) {
             setArenaStatus(ArenaStatus.WAITING);
-            setTime(getDefTime(), false, true);
-            setMaxTime(getDefMaxTime(), false, true);
             return;
         }
         if (getArenaStatus() == ArenaStatus.WAITING) {
@@ -670,14 +662,12 @@ public class Arena {
             finalizeArena(false);
             return;
         }
-        if (getPlayers().size() < minPlayers && getArenaStatus() == ArenaStatus.STARTING) {
-            setArenaStatus(ArenaStatus.WAITING);
-            setTime(getDefTime());
-            setMaxTime(getDefMaxTime(), false, true);
-            return;
-        }
         if (getPlayers().size() == 1 && getConfiguration().getBoolean("Extensions.Win.Last Player Win") && getArenaStatus() == ArenaStatus.PLAYING) {
             finalizeArenaWithWinner(getPlayers().get(0));
+            return;
+        }
+        if (getPlayers().size() < minPlayers && getArenaStatus() == ArenaStatus.STARTING) {
+            setArenaStatus(ArenaStatus.WAITING);
             return;
         }
         if (getArenaStatus() == ArenaStatus.WAITING) {

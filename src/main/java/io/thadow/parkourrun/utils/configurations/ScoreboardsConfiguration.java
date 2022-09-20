@@ -26,10 +26,10 @@ public class ScoreboardsConfiguration extends ConfigurationManager {
         lobbyLines.add("&7");
         lobbyLines.add("%player_name%");
         lobbyLines.add("&7Wins: &a%wins%");
-        lobbyLines.add("&7Loses: &c%loses");
+        lobbyLines.add("&7Loses: &c%loses%");
         lobbyLines.add("&7");
         lobbyLines.add("&7mc.myserver.com");
-        configuration.addDefault("Scoreboars.Lobby.Lines", lobbyLines);
+        configuration.addDefault("Scoreboards.Lobby.Lines", lobbyLines);
 
         configuration.addDefault("Scoreboards.Waiting.Enabled", true);
         configuration.addDefault("Scoreboards.Waiting.Update", 10);

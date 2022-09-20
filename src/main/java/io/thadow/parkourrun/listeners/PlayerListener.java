@@ -116,7 +116,6 @@ public class PlayerListener implements Listener {
                         locations.remove(arenaNameStrip + ";" + stringLocationConfigFormat(event.getBlock().getLocation()));
                         SignsConfiguration.signsConfiguration.save();
                         SignsConfiguration.signsConfiguration.set("Locations", locations);
-                        Bukkit.broadcastMessage(arenaNameStrip + ";" + stringLocationConfigFormat(event.getBlock().getLocation()));
                         SignsConfiguration.signsConfiguration.save();
                         player.sendMessage("§a▪ §7Sign removed for arena: " + arenaNameStrip);
                     }
@@ -131,9 +130,7 @@ public class PlayerListener implements Listener {
                 if (location1.getZ() == location2.getZ()) {
                     if (location1.getYaw() == location2.getYaw()) {
                         if (location1.getPitch() == location2.getPitch()) {
-                            if (location1.getWorld() == location2.getWorld()) {
-                                return true;
-                            }
+                            return location1.getWorld() == location2.getWorld();
                         }
                     }
                 }
@@ -148,14 +145,14 @@ public class PlayerListener implements Listener {
         if (player.hasPermission("parkourrun.commands.admin")) {
             for (Arena arena : ArenaManager.getArenaManager().getArenas()) {
                 for (Block signBlock : arena.getSigns()) {
-                    Location location = signBlock.getLocation();
                     for (String locations : Main.getSignsConfiguration().getStringList("Locations")) {
                         String[] locationsSplit = locations.split(";");
-                        if (!(location.getBlock().getType().toString().endsWith("_SIGN")) || !(location.getBlock().getType().toString().endsWith("_WALL_SIGN")))
-                            return;
-                        Sign sign = (Sign) location.getBlock().getState();
                         Arena needUpdate = ArenaManager.getArenaManager().getArenaByID(locationsSplit[0]);
-                        if (areEquals(sign.getBlock().getLocation(), signBlock.getLocation())) {
+                        if (needUpdate == null) {
+                            needUpdate = ArenaManager.getArenaManager().getArenaByName(locationsSplit[0]);
+                        }
+                        if (areEquals(event.getBlock().getLocation(), signBlock.getLocation())) {
+                            Sign sign = (Sign) event.getBlock().getState();
                             needUpdate.refreshSigns(arena);
                             SignsManager.updateBlock(arena);
                             int line = 0;
@@ -197,6 +194,7 @@ public class PlayerListener implements Listener {
         }
     }
 
+
     @EventHandler
     public void onSignChange(SignChangeEvent event) {
         if (event == null)
@@ -224,9 +222,7 @@ public class PlayerListener implements Listener {
                 } else {
                     locations = new ArrayList<>(Main.getSignsConfiguration().getStringList("Locations"));
                 }
-                if (exists) {
-                    if (locations.contains(event.getLine(1) + ";" + stringLocationConfigFormat(event.getBlock().getLocation())))
-                        return;
+                if (exists && !locations.contains(event.getLine(1) + ";" + stringLocationConfigFormat(event.getBlock().getLocation()))) {
                     locations.add(event.getLine(1) + ";" + stringLocationConfigFormat(event.getBlock().getLocation()));
                     SignsConfiguration.signsConfiguration.set("Locations", locations);
                     SignsConfiguration.signsConfiguration.save();

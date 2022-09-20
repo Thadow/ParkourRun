@@ -223,7 +223,7 @@ public class ParkourRunCommand implements CommandExecutor {
                         player.sendMessage(message);
                         return true;
                     }
-                    arena.setTime(Integer.parseInt(args[1]));
+                    arena.setTime(Integer.parseInt(args[1]), true, true);
                     if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Parameter Changed.Show Info.Enabled")) {
                         sendInfoMessage(player, arena);
                     }

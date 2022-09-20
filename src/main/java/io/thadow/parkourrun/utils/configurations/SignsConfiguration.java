@@ -17,16 +17,16 @@ public class SignsConfiguration extends ConfigurationManager {
         signsConfiguration = new SignsConfiguration();
         signsConfiguration.getConfiguration().options().copyDefaults(true);
         signsConfiguration.getConfiguration().addDefault("Format", Arrays.asList("&a[arena]", "", "&2[current]&9/&2[max]", "[status]"));
-        signsConfiguration.getConfiguration().addDefault("Status.Waiting.Material", "STAINED_CLAY");
+        signsConfiguration.getConfiguration().addDefault("Status.Waiting.Material", "STAINED_GLASS");
         signsConfiguration.getConfiguration().addDefault("Status.Waiting.Data", 5);
-        signsConfiguration.getConfiguration().addDefault("Status.Starting.Material", "STAINED_CLAY");
-        signsConfiguration.getConfiguration().addDefault("Status.Starting.Data", 14);
-        signsConfiguration.getConfiguration().addDefault("Status.Playing.Material", "STAINED_CLAY");
-        signsConfiguration.getConfiguration().addDefault("Status.Playing.Data", 4);
-        signsConfiguration.getConfiguration().addDefault("Status.Ending.Material", "STAINED_CLAY");
-        signsConfiguration.getConfiguration().addDefault("Status.Ending.Data", 2);
-        signsConfiguration.getConfiguration().addDefault("Status.Disabled.Material", "STAINED_CLAY");
-        signsConfiguration.getConfiguration().addDefault("Status.Disabled.Data", 2);
+        signsConfiguration.getConfiguration().addDefault("Status.Starting.Material", "STAINED_GLASS");
+        signsConfiguration.getConfiguration().addDefault("Status.Starting.Data", 1);
+        signsConfiguration.getConfiguration().addDefault("Status.Playing.Material", "STAINED_GLASS");
+        signsConfiguration.getConfiguration().addDefault("Status.Playing.Data", 14);
+        signsConfiguration.getConfiguration().addDefault("Status.Ending.Material", "STAINED_GLASS");
+        signsConfiguration.getConfiguration().addDefault("Status.Ending.Data", 15);
+        signsConfiguration.getConfiguration().addDefault("Status.Disabled.Material", "STAINED_GLASS");
+        signsConfiguration.getConfiguration().addDefault("Status.Disabled.Data", 8);
         signsConfiguration.save();
     }
 }

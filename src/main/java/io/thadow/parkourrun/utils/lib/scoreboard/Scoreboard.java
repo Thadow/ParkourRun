@@ -613,27 +613,24 @@ public class Scoreboard {
     }
 
     private static void updateLobbyScoreboard(Player player) {
-        Arena arena = ArenaManager.getArenaManager().getArena(player);
-        if (arena == null) {
-            String title = getPath("Scoreboards.Lobby.Title");
-            List<String> lines = getListPath("Scoreboards.Lobby.Lines");
-            List<String> newLines = new ArrayList<>();
-            Scoreboard scoreboard = scoreboards.get(player.getUniqueId());
-            if (scoreboard == null) {
-                scoreboard = new Scoreboard(player);
-                scoreboards.put(player.getUniqueId(), scoreboard);
-            }
-            scoreboard.updateTitle(Utils.colorize(title));
-            for (String line : lines) {
-                line = Utils.replace(line, "%player_name%", player.getName());
-                line = Utils.replace(line, "%wins%", String.valueOf(ParkourRunAPI.getPlayerWins(player.getName())));
-                line = Utils.replace(line, "%loses%", String.valueOf(ParkourRunAPI.getPlayerLoses(player.getName())));
-                line = PlaceholderAPI.setPlaceholders(player, line);
-                line = Utils.colorize(line);
-                newLines.add(line);
-            }
-            scoreboard.updateLines(newLines);
+        String title = getPath("Scoreboards.Lobby.Title");
+        List<String> lines = getListPath("Scoreboards.Lobby.Lines");
+        List<String> newLines = new ArrayList<>();
+        Scoreboard scoreboard = scoreboards.get(player.getUniqueId());
+        if (scoreboard == null) {
+            scoreboard = new Scoreboard(player);
+            scoreboards.put(player.getUniqueId(), scoreboard);
         }
+        scoreboard.updateTitle(Utils.colorize(title));
+        for (String line : lines) {
+            line = Utils.replace(line, "%player_name%", player.getName());
+            line = Utils.replace(line, "%wins%", String.valueOf(ParkourRunAPI.getPlayerWins(player.getName())));
+            line = Utils.replace(line, "%loses%", String.valueOf(ParkourRunAPI.getPlayerLoses(player.getName())));
+            line = PlaceholderAPI.setPlaceholders(player, line);
+            line = Utils.colorize(line);
+            newLines.add(line);
+        }
+        scoreboard.updateLines(newLines);
     }
 
     private static void updateWaitingScoreboard(Player player) {
@@ -737,7 +734,7 @@ public class Scoreboard {
         int lobbyUpdate = getInt("Scoreboards.Lobby.Update");
         int waitingUpdate = getInt("Scoreboards.Waiting.Update");
         int startingUpdate = getInt("Scoreboards.Starting.Update");
-        int playingUpdate = getInt("Scoreboards.In Game.Update");
+        int playingUpdate = getInt("Scoreboards.Playing.Update");
         int endingUpdate = getInt("Scoreboards.Ending.Update");
 
         if (getBoolean("Scoreboards.Lobby.Enabled")) {

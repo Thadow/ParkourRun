@@ -76,7 +76,7 @@ public class CooldownManager {
             message = Utils.format(message);
             arena.broadcast(message);
             arena.setArenaStatus(ArenaStatus.WAITING);
-            arena.setTime(arena.getDefTime());
+            arena.setTime(arena.getDefTime(), false, true);
             return false;
         }
     }

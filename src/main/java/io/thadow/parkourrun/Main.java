@@ -80,7 +80,6 @@ public class Main extends JavaPlugin {
         getCommand("parkourrun").setExecutor(new ParkourRunCommand());
         getCommand("leave").setExecutor(new LeaveCommand());
         registerListeners(new ArenaListener(), new PlayerListener(), new ArenaEventsListener());
-        ScoreboardManager.getScoreboardManager().startScoreboards();
         ActionCooldown.createCooldown("cantWinMessage", 5);
         if (getConfiguration().getString("Configuration.StorageType").equals("TRANSFORM")) {
             String from = getConfiguration().getString("Configuration.Transform.From");
@@ -101,6 +100,7 @@ public class Main extends JavaPlugin {
         PlayerDataManager.getPlayerDataManager().loadPlayers();
         new ParkourRunAPI(this);
         new PAPIExpansion(this).register();
+        ScoreboardManager.getScoreboardManager().startScoreboards();
     }
 
     @Override

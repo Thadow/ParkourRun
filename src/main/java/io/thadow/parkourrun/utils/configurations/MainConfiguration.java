@@ -27,6 +27,7 @@ public class MainConfiguration extends ConfigurationManager {
         configuration.addDefault("Configuration.Arenas.Per Chat Arena", true);
         configuration.addDefault("Configuration.Arenas.Status.Waiting", "&aESPERANDO");
         configuration.addDefault("Configuration.Arenas.Status.Starting", "&6INICIANDO");
+        configuration.addDefault("Configuration.Arenas.Status.Playing", "&cEN JUEGO");
         configuration.addDefault("Configuration.Arenas.Status.Ending", "&cTERMINANDO");
         configuration.addDefault("Configuration.Arenas.Status.Disabled", "&4DESACTIVADA");
         configuration.addDefault("Configuration.Arenas.Checkpoints.Firework.Enabled", true);
