@@ -107,12 +107,12 @@ public class ArenaListener implements Listener {
                 return;
             Material clickedBlock = event.getClickedBlock().getType();
             Arena arena = ArenaManager.getArenaManager().getArena(player);
-            String plate = Main.getInstance().getConfig().getString("Configuration.Arenas.Checkpoints.Plate");
+            String plate = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Checkpoints.Plate");
             if (arena.getArenaStatus() != ArenaStatus.PLAYING) {
                 return;
             }
             if (clickedBlock == Material.valueOf(plate)) {
-                String underBlock = Main.getInstance().getConfig().getString("Configuration.Arenas.Checkpoints.Under Block");
+                String underBlock = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Checkpoints.Under Block");
                 if (Utils.isNearBlock(player, 2, underBlock)) {
                     int currentCheckpointID = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);
                     if (currentCheckpointID == 0) {
@@ -175,7 +175,7 @@ public class ArenaListener implements Listener {
                                 arena.broadcast(broadcast);
                             }
 
-                            if (Main.getInstance().getConfig().getBoolean("Configuration.Arenas.Checkpoints.Firework.Enabled")) {
+                            if (Main.getInstance().getConfiguration().getBoolean("Configuration.Arenas.Checkpoints.Firework.Enabled")) {
                                 firework(player);
                             }
                         }
@@ -244,7 +244,7 @@ public class ArenaListener implements Listener {
                                     arena.broadcast(broadcast);
                                 }
 
-                                if (Main.getInstance().getConfig().getBoolean("Configuration.Arenas.Checkpoints.Firework.Enabled")) {
+                                if (Main.getInstance().getConfiguration().getBoolean("Configuration.Arenas.Checkpoints.Firework.Enabled")) {
                                     firework(player);
                                 }
                             }
@@ -384,7 +384,7 @@ public class ArenaListener implements Listener {
         if (event.isCancelled()) {
             return;
         }
-        if (Main.getInstance().getConfig().getBoolean("Configuration.Arenas.Per Arena Chat")) {
+        if (Main.getInstance().getConfiguration().getBoolean("Configuration.Arenas.Per Arena Chat")) {
             Arena arena = ArenaManager.getArenaManager().getArena(player);
             if (arena != null) {
                 for (Player players : Bukkit.getOnlinePlayers()) {

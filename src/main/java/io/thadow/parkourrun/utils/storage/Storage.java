@@ -90,12 +90,12 @@ public class Storage {
         int loaded = 0;
         if (from.equalsIgnoreCase("MySQL") && to.equalsIgnoreCase("LOCAL")) {
             this.type = StorageType.TRANSFORM;
-            String host = Main.getInstance().getConfig().getString("Configuration.MySQL.Host");
-            int port = Main.getInstance().getConfig().getInt("Configuration.MySQL.Port");
-            String database = Main.getInstance().getConfig().getString("Configuration.MySQL.Database");
-            String username = Main.getInstance().getConfig().getString("Configuration.MySQL.Username");
-            String password = Main.getInstance().getConfig().getString("Configuration.MySQL.Password");
-            boolean useSSL = Main.getInstance().getConfig().getBoolean("Configuration.MySQL.SSL");
+            String host = Main.getInstance().getConfiguration().getString("Configuration.MySQL.Host");
+            int port = Main.getInstance().getConfiguration().getInt("Configuration.MySQL.Port");
+            String database = Main.getInstance().getConfiguration().getString("Configuration.MySQL.Database");
+            String username = Main.getInstance().getConfiguration().getString("Configuration.MySQL.Username");
+            String password = Main.getInstance().getConfiguration().getString("Configuration.MySQL.Password");
+            boolean useSSL = Main.getInstance().getConfiguration().getBoolean("Configuration.MySQL.SSL");
             MySQLConntection mySQLConntection = new MySQLConntection();
             mySQLConntection.setup(host, port, database, username, password, useSSL);
             LocalStorage.setup();
@@ -118,7 +118,7 @@ public class Storage {
             Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aLoaded: " + loaded));
             int total = updated;
             Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aTotal changed: " + total));
-            Main.getInstance().getConfig().set("Configuration.StorageType", "LOCAL");
+            Main.getInstance().getConfiguration().set("Configuration.StorageType", "LOCAL");
             Main.getInstance().saveConfig();
             Bukkit.getConsoleSender().sendMessage("&aPlease restart the server.");
         } else if (from.equalsIgnoreCase("LOCAL") && to.equalsIgnoreCase("MySQL")) {
@@ -155,7 +155,7 @@ public class Storage {
             Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aLoaded: " + loaded));
             int total = created + updated;
             Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aTotal changed: " + total));
-            Main.getInstance().getConfig().set("Configuration.StorageType", "MySQL");
+            Main.getInstance().getConfiguration().set("Configuration.StorageType", "MySQL");
             Main.getInstance().saveConfig();
             Bukkit.getConsoleSender().sendMessage("&aPlease restart the server.");
         }

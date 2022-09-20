@@ -20,9 +20,18 @@ public class ArenaManager {
         return arenaManager;
     }
 
-    public Arena getArena(String arenaName) {
+    public Arena getArenaByID(String arenaID) {
         for (Arena arena : arenas) {
-            if (arena.getArenaID().equals(arenaName)) {
+            if (arena.getArenaID().equals(arenaID)) {
+                return arena;
+            }
+        }
+        return null;
+    }
+
+    public Arena getArenaByName(String name) {
+        for (Arena arena : arenas) {
+            if (arena.getArenaDisplayName().equals(name)) {
                 return arena;
             }
         }
@@ -38,8 +47,11 @@ public class ArenaManager {
         return null;
     }
 
-    public boolean addPlayer(Player player, String arenaName) {
-        Arena arena = getArena(arenaName);
+    public boolean addPlayer(Player player, String arenaID) {
+        Arena arena = getArenaByID(arenaID);
+        if (arena == null) {
+            arena = getArenaByName(arenaID);
+        }
         if (arena == null) {
             return false;
         }
@@ -47,14 +59,15 @@ public class ArenaManager {
         return true;
     }
 
-    public void joinRandom(Player player) {
+    public boolean joinRandom(Player player) {
         List<Arena> arenas = Utils.getSorted(getArenas());
 
         for (Arena arena : arenas) {
             if (addPlayer(player, arena.getArenaID())) {
-                break;
+                return true;
             }
         }
+        return false;
     }
 
 
@@ -117,7 +130,7 @@ public class ArenaManager {
             return false;
         }
 
-        Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+        Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
         ArenaManager.getArenaManager().getArenas().remove(arena);
         FileUtils.deleteQuietly(arenaFile);
         return true;

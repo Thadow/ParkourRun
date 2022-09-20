@@ -6,7 +6,6 @@ import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.utils.Utils;
-import io.thadow.parkourrun.utils.configurations.ScoreboardConfiguration;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -597,11 +596,27 @@ public class Scoreboard {
         }
     }
 
+    private static String getPath(String path) {
+        return Main.getScoreboardsConfiguration().getString(path);
+    }
+
+    private static List<String> getListPath(String path) {
+        return Main.getScoreboardsConfiguration().getStringList(path);
+    }
+
+    private static Integer getInt(String path) {
+        return Main.getScoreboardsConfiguration().getInt(path);
+    }
+
+    private static boolean getBoolean(String path) {
+        return Main.getScoreboardsConfiguration().getBoolean(path);
+    }
+
     private static void updateLobbyScoreboard(Player player) {
         Arena arena = ArenaManager.getArenaManager().getArena(player);
         if (arena == null) {
-            String title = ScoreboardConfiguration.getPath("Scoreboards.Lobby.Title");
-            List<String> lines = ScoreboardConfiguration.getListPath("Scoreboards.Lobby.Lines");
+            String title = getPath("Scoreboards.Lobby.Title");
+            List<String> lines = getListPath("Scoreboards.Lobby.Lines");
             List<String> newLines = new ArrayList<>();
             Scoreboard scoreboard = scoreboards.get(player.getUniqueId());
             if (scoreboard == null) {
@@ -623,8 +638,8 @@ public class Scoreboard {
 
     private static void updateWaitingScoreboard(Player player) {
         Arena arena = ArenaManager.getArenaManager().getArena(player);
-        String title = ScoreboardConfiguration.getPath("Scoreboards.Waiting.Title");
-        List<String> lines = ScoreboardConfiguration.getListPath("Scoreboards.Waiting.Lines");
+        String title = getPath("Scoreboards.Waiting.Title");
+        List<String> lines = getListPath("Scoreboards.Waiting.Lines");
         List<String> newLines = new ArrayList<>();
         Scoreboard scoreboard = scoreboards.get(player.getUniqueId());
         if (scoreboard == null) {
@@ -646,8 +661,8 @@ public class Scoreboard {
 
     private static void updateStartingScoreboard(Player player) {
         Arena arena = ArenaManager.getArenaManager().getArena(player);
-        String title = ScoreboardConfiguration.getPath("Scoreboards.Starting.Title");
-        List<String> lines = ScoreboardConfiguration.getListPath("Scoreboards.Starting.Lines");
+        String title = getPath("Scoreboards.Starting.Title");
+        List<String> lines = getListPath("Scoreboards.Starting.Lines");
         List<String> newLines = new ArrayList<>();
         Scoreboard scoreboard = scoreboards.get(player.getUniqueId());
         if (scoreboard == null) {
@@ -670,8 +685,8 @@ public class Scoreboard {
 
     private static void updatePlayingScoreboard(Player player) {
         Arena arena = ArenaManager.getArenaManager().getArena(player);
-        String title = ScoreboardConfiguration.getPath("Scoreboards.In Game.Title");
-        List<String> lines = ScoreboardConfiguration.getListPath("Scoreboards.In Game.Lines");
+        String title = getPath("Scoreboards.Playing.Title");
+        List<String> lines = getListPath("Scoreboards.Playing.Lines");
         List<String> newLines = new ArrayList<>();
         Scoreboard scoreboard = scoreboards.get(player.getUniqueId());
         if (scoreboard == null) {
@@ -694,8 +709,8 @@ public class Scoreboard {
 
     private static void updateEndingScoreboard(Player player) {
         Arena arena = ArenaManager.getArenaManager().getArena(player);
-        String title = ScoreboardConfiguration.getPath("Scoreboards.Ending.Title");
-        List<String> lines = ScoreboardConfiguration.getListPath("Scoreboards.Ending.Lines");
+        String title = getPath("Scoreboards.Ending.Title");
+        List<String> lines = getListPath("Scoreboards.Ending.Lines");
         List<String> newLines = new ArrayList<>();
         Scoreboard scoreboard = scoreboards.get(player.getUniqueId());
         if (scoreboard == null) {
@@ -719,62 +734,106 @@ public class Scoreboard {
 
     public static void run() {
         BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-        int lobbyUpdate = ScoreboardConfiguration.getInt("Scoreboards.Lobby.Update");
-        int waitingUpdate = ScoreboardConfiguration.getInt("Scoreboards.Waiting.Update");
-        int startingUpdate = ScoreboardConfiguration.getInt("Scoreboards.Starting.Update");
-        int playingUpdate = ScoreboardConfiguration.getInt("Scoreboards.In Game.Update");
-        int endingUpdate = ScoreboardConfiguration.getInt("Scoreboards.Ending.Update");
-        scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
-            for(Player player : Bukkit.getOnlinePlayers()) {
-                Arena arena = ArenaManager.getArenaManager().getArena(player);
-                if (arena == null) {
-                    updateLobbyScoreboard(player);
+        int lobbyUpdate = getInt("Scoreboards.Lobby.Update");
+        int waitingUpdate = getInt("Scoreboards.Waiting.Update");
+        int startingUpdate = getInt("Scoreboards.Starting.Update");
+        int playingUpdate = getInt("Scoreboards.In Game.Update");
+        int endingUpdate = getInt("Scoreboards.Ending.Update");
+
+        if (getBoolean("Scoreboards.Lobby.Enabled")) {
+            scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
+                for(Player player : Bukkit.getOnlinePlayers()) {
+                    Arena arena = ArenaManager.getArenaManager().getArena(player);
+                    if (arena == null) {
+                        updateLobbyScoreboard(player);
+                    }
                 }
-            }
-        },0, lobbyUpdate);
+            },0, lobbyUpdate);
+        }
+
+        if (getBoolean("Scoreboards.Waiting.Enabled")) {
+            scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    Arena arena = ArenaManager.getArenaManager().getArena(player);
+                    if (arena == null)
+                        return;
+                    if (arena.getArenaStatus() == ArenaStatus.WAITING) {
+                        updateWaitingScoreboard(player);
+                    }
+                }
+            }, 0, waitingUpdate);
+        }
+
+        if (getBoolean("Scoreboards.Starting.Enabled")) {
+            scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    Arena arena = ArenaManager.getArenaManager().getArena(player);
+                    if (arena == null)
+                        return;
+                    if (arena.getArenaStatus() == ArenaStatus.STARTING) {
+                        updateStartingScoreboard(player);
+                    }
+                }
+            }, 0, startingUpdate);
+        }
+
+        if (getBoolean("Scoreboards.Playing.Enabled")) {
+            scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    Arena arena = ArenaManager.getArenaManager().getArena(player);
+                    if (arena == null)
+                        return;
+                    if (arena.getArenaStatus() == ArenaStatus.PLAYING) {
+                        updatePlayingScoreboard(player);
+                    }
+                }
+            }, 0, playingUpdate);
+        }
+
+        if (getBoolean("Scoreboards.Ending.Enabled")) {
+            scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    Arena arena = ArenaManager.getArenaManager().getArena(player);
+                    if (arena == null)
+                        return;
+                    if (arena.getArenaStatus() == ArenaStatus.ENDING) {
+                        updateEndingScoreboard(player);
+                    }
+                }
+            }, 0, endingUpdate);
+        }
 
         scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
             for (Player player : Bukkit.getOnlinePlayers()) {
+                Scoreboard scoreboard = scoreboards.get(player.getUniqueId());
                 Arena arena = ArenaManager.getArenaManager().getArena(player);
-                if (arena == null)
+                if (arena == null && !getBoolean("Scoreboards.Lobby.Enabled")) {
+                    scoreboards.remove(player.getUniqueId());
+                    scoreboard.delete();
                     return;
-                if (arena.getArenaStatus() == ArenaStatus.WAITING) {
-                    updateWaitingScoreboard(player);
+                }
+                if (scoreboard != null) {
+                    if (arena != null && arena.getArenaStatus() == ArenaStatus.WAITING && !getBoolean("Scoreboards.Waiting.Enabled")) {
+                        scoreboards.remove(player.getUniqueId());
+                        scoreboard.delete();
+                        return;
+                    }
+                    if (arena != null && arena.getArenaStatus() == ArenaStatus.STARTING && !getBoolean("Scoreboards.Starting.Enabled")) {
+                        scoreboards.remove(player.getUniqueId());
+                        scoreboard.delete();
+                        return;
+                    }
+                    if (arena != null && arena.getArenaStatus() == ArenaStatus.PLAYING && !getBoolean("Scoreboards.Playing.Enabled")) {
+                        scoreboards.remove(player.getUniqueId());
+                        scoreboard.delete();
+                        return;
+                    }
+                    if (arena != null && arena.getArenaStatus() == ArenaStatus.ENDING && !getBoolean("Scoreboards.Ending.Enabled")) {
+                        scoreboards.remove(player.getUniqueId());
+                        scoreboard.delete();
+                    }
                 }
             }
-        }, 0, waitingUpdate);
-
-        scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                Arena arena = ArenaManager.getArenaManager().getArena(player);
-                if (arena == null)
-                    return;
-                if (arena.getArenaStatus() == ArenaStatus.STARTING) {
-                    updateStartingScoreboard(player);
-                }
-            }
-        }, 0, startingUpdate);
-
-        scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                Arena arena = ArenaManager.getArenaManager().getArena(player);
-                if (arena == null)
-                    return;
-                if (arena.getArenaStatus() == ArenaStatus.PLAYING) {
-                    updatePlayingScoreboard(player);
-                }
-            }
-        }, 0, playingUpdate);
-
-        scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                Arena arena = ArenaManager.getArenaManager().getArena(player);
-                if (arena == null)
-                    return;
-                if (arena.getArenaStatus() == ArenaStatus.ENDING) {
-                    updateEndingScoreboard(player);
-                }
-            }
-        }, 0, endingUpdate);
+        }, 0, 20);
     }
 }

@@ -3,6 +3,7 @@ package io.thadow.parkourrun.utils;
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
+import io.thadow.parkourrun.managers.ArenaManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,6 +22,34 @@ public class Utils {
         message = replace(message,"%prefix%", Main.getMessagesConfiguration().getString("Prefix"));
         message = colorize(message);
         return message;
+    }
+
+    public static void handleJoin(Player player, Arena arena) {
+        if (arena == null) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Unknown Arena");
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return;
+        }
+        if (ArenaManager.getArenaManager().getArena(player) != null) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Already In Arena");
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return;
+        }
+        if (arena.getArenaStatus() == ArenaStatus.PLAYING) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.In Game");
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return;
+        }
+        if (arena.getArenaStatus() == ArenaStatus.ENDING) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Ending");
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return;
+        }
+        ArenaManager.getArenaManager().addPlayer(player, arena.getArenaID());
     }
 
     public static void playSound(Player player, String path) {

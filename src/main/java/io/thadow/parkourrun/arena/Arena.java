@@ -1,13 +1,20 @@
 package io.thadow.parkourrun.arena;
 
 import io.thadow.parkourrun.Main;
+import io.thadow.parkourrun.api.event.*;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.CooldownManager;
+import io.thadow.parkourrun.managers.SignsManager;
 import io.thadow.parkourrun.utils.configurations.ArenaConfiguration;
 import io.thadow.parkourrun.utils.Utils;
+import io.thadow.parkourrun.utils.configurations.SignsConfiguration;
+import io.thadow.parkourrun.utils.debug.Debugger;
+import io.thadow.parkourrun.utils.debug.type.DebugType;
 import io.thadow.parkourrun.utils.lib.titles.Titles;
 import io.thadow.parkourrun.utils.storage.Storage;
 import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
@@ -37,6 +44,92 @@ public class Arena {
     private Map<Integer, String> checkpoints;
     private final Map<Player, Integer> currentPlayerCheckpoint = new HashMap<>();
     private final Map<Player, Integer> nextPlayerCheckpoint = new HashMap<>();
+    private List<Block> signs = new ArrayList<>();
+
+    public List<Block> getSigns() {
+        return signs;
+    }
+
+    public void addSign(Location location) {
+        if (location == null)
+            return;
+        if (location.getBlock().getType().toString().endsWith("_SIGN") || location.getBlock().getType().toString().endsWith("_WALL_SIGN")) {
+            signs.add(location.getBlock());
+            refreshSigns(this);
+            SignsManager.updateBlock(this);
+        }
+    }
+
+    public synchronized void refreshSigns(Arena arena) {
+        for (Block signs2 : arena.getSigns()) {
+            if (signs2 == null)
+                return;
+            if (!(signs2.getType().toString().endsWith("_SIGN") || signs2.getType().toString().endsWith("_WALL_SIGN")))
+                return;
+            if (!(signs2.getState() instanceof Sign))
+                return;
+            Sign sign = (Sign) signs2.getState();
+            if (sign == null)
+                return;
+            int line = 0;
+            for (String string : Main.getSignsConfiguration().getStringList("Format")) {
+                if (string == null)
+                    return;
+                String waiting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Waiting");
+                String starting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Starting");
+                String playing = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Playing");
+                String ending = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Ending");
+                String disabled = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Disabled");
+                String status;
+                switch (arena.getArenaStatus()) {
+                    case WAITING:
+                        status = waiting;
+                        break;
+                    case STARTING:
+                        status = starting;
+                        break;
+                    case PLAYING:
+                        status = playing;
+                        break;
+                    case ENDING:
+                        status = ending;
+                        break;
+                    case DISABLED:
+                        status = disabled;
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + arena.getArenaStatus());
+                }
+                sign.setLine(line, Utils.colorize(string.replace("[current]", String.valueOf(arena.getPlayers().size()))
+                        .replace("[max]", String.valueOf(arena.getMaxPlayers())).replace("[arena]", arena.getArenaDisplayName())
+                        .replace("[status]", status)));
+                line++;
+            }
+            try {
+                sign.update(true);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public void registerSings() {
+        for (String location : SignsConfiguration.signsConfiguration.getStringList("Locations")) {
+            String[] locationSplit = location.split(";");
+            if (locationSplit[0].equals(arenaDisplayName)) {
+                double x = Double.parseDouble(locationSplit[1]);
+                double y = Double.parseDouble(locationSplit[2]);
+                double z = Double.parseDouble(locationSplit[3]);
+                float yaw = Float.parseFloat(locationSplit[4]);
+                float pitch = Float.parseFloat(locationSplit[5]);
+                World world = Bukkit.getWorld(locationSplit[6]);
+                Location signLocation = new Location(world, x, y, z, yaw, pitch);
+                addSign(signLocation);
+                Debugger.debug(DebugType.INFO, "Sign registered for: " + locationSplit[0]);
+                Debugger.debug(DebugType.INFO, "Arena: " + arenaDisplayName);
+            }
+        }
+    }
 
     private final YamlConfiguration configuration;
     private final ArenaConfiguration arenaConfig;
@@ -69,9 +162,11 @@ public class Arena {
 
     public Arena(String arenaID) {
         this.arenaID = arenaID;
+        Bukkit.getPluginManager().callEvent(new ArenaPreLoadEvent(this));
 
         arenaConfig = new ArenaConfiguration(arenaID, Main.getInstance().getDataFolder() + "/Arenas");
         configuration = arenaConfig.getConfiguration();
+        Bukkit.getPluginManager().callEvent(new ArenaConfigurationLoadEvent(this, configuration));
 
         arenaDisplayName = configuration.getString("Arena Name");
         minPlayers = configuration.getInt("Min Players");
@@ -134,10 +229,14 @@ public class Arena {
 
         enabled = configuration.getBoolean("Enabled");
         if (!enabled) {
-            arenaStatus = ArenaStatus.DISABLED;
+            setArenaStatus(ArenaStatus.DISABLED);
         } else {
-            arenaStatus = ArenaStatus.WAITING;
+            setArenaStatus(ArenaStatus.WAITING);
         }
+
+        registerSings();
+        refreshSigns(this);
+        Bukkit.getPluginManager().callEvent(new ArenaPostLoadEvent(this));
     }
 
     public String getWinCorner1() {
@@ -244,6 +343,17 @@ public class Arena {
         arenaConfig.save();
     }
 
+    public void setTime(int time, boolean save, boolean setting) {
+        this.time = time;
+        if (setting) {
+            setDefTime(time);
+        }
+        if (save) {
+            arenaConfig.set("Wait Time To Start", time);
+            arenaConfig.save();
+        }
+    }
+
     public void setMaxTime(int maxTime, boolean save, boolean setting) {
         this.maxTime = maxTime;
         if (setting) {
@@ -330,6 +440,7 @@ public class Arena {
     }
 
     public void setArenaStatus(ArenaStatus arenaStatus) {
+        Bukkit.getPluginManager().callEvent(new ArenaChangeStatusEvent(this, this.arenaStatus, arenaStatus));
         this.arenaStatus = arenaStatus;
     }
 
@@ -539,7 +650,7 @@ public class Arena {
         }
         if (getPlayers().size() < minPlayers && getArenaStatus() == ArenaStatus.STARTING) {
             setArenaStatus(ArenaStatus.WAITING);
-            setTime(getDefTime());
+            setTime(getDefTime(), false, true);
             setMaxTime(getDefMaxTime(), false, true);
             return;
         }
@@ -583,12 +694,14 @@ public class Arena {
         arenaConfig.set("Enabled", enabled);
         if (!enabled) {
             teleportSpawn(true);
-            arenaStatus = ArenaStatus.DISABLED;
+            setArenaStatus(ArenaStatus.DISABLED);
+            Bukkit.getPluginManager().callEvent(new ArenaDisableEvent(this));
             String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Disabled.Message To Players");
             message = Utils.format(message);
             broadcast(message);
         } else {
-            arenaStatus = ArenaStatus.WAITING;
+            setArenaStatus(ArenaStatus.WAITING);
+            Bukkit.getPluginManager().callEvent(new ArenaEnableEvent(this));
         }
     }
 

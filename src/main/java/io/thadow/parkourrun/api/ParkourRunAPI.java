@@ -58,7 +58,10 @@ public class ParkourRunAPI {
     }
 
     public static String getArenaDisplayName(String arenaID) {
-        Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+        Arena arena = ArenaManager.getArenaManager().getArenaByName(arenaID);
+        if (arena == null) {
+            arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+        }
         if (arena != null) {
             return arena.getArenaDisplayName();
         } else {
@@ -67,7 +70,10 @@ public class ParkourRunAPI {
     }
 
     public static ArenaStatus getArenaStatus(String arenaID) {
-        Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+        Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+        if (arena == null) {
+            ArenaManager.getArenaManager().getArenaByName(arenaID);
+        }
         if (arena != null) {
             return arena.getArenaStatus();
         } else {
@@ -85,7 +91,10 @@ public class ParkourRunAPI {
     }
 
     public static List<Player> getArenaPlayers(String arenaID) {
-        Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+        Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+        if (arena == null) {
+            arena = ArenaManager.getArenaManager().getArenaByName(arenaID);
+        }
         if (arena != null) {
             return arena.getPlayers();
         } else {
@@ -107,7 +116,10 @@ public class ParkourRunAPI {
     }
 
     public static Integer getArenaTotalPlayers(String arenaID) {
-        Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+        Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+        if (arena == null) {
+            arena = ArenaManager.getArenaManager().getArenaByName(arenaID);
+        }
         if (arena != null) {
             return arena.getPlayers().size();
         } else {
@@ -125,7 +137,10 @@ public class ParkourRunAPI {
     }
 
     public static Integer getArenaMinPlayers(String arenaID) {
-        Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+        Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+        if (arena == null) {
+            arena = ArenaManager.getArenaManager().getArenaByName(arenaID);
+        }
         if (arena != null) {
             return arena.getMinPlayers();
         } else {
@@ -143,7 +158,10 @@ public class ParkourRunAPI {
     }
 
     public static Integer getArenaMaxPlayers(String arenaID) {
-        Arena arena = ArenaManager.getArenaManager().getArena(arenaID);
+        Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+        if (arena == null) {
+            arena = ArenaManager.getArenaManager().getArenaByName(arenaID);
+        }
         if (arena != null) {
             return arena.getMaxPlayers();
         } else {

@@ -19,7 +19,7 @@ Scoreboards:
       - "%server_time_yyyy/MM/dd%"
       - "&7"
       - "&aMap&7: &a%arenaName%"
-      - "&7 "
+      - "&7"
       - "&7Waiting..."
       - ""
       - "&7mc.myserver.com"
@@ -35,7 +35,7 @@ Scoreboards:
       - "&eStarting in %seconds%"
       - ""
       - "&7mc.myserver.com"
-  In Game:
+  Playing:
     Enabled: true
     Update: 10
     Title: "&eParkourRun"

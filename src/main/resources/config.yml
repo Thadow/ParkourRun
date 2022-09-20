@@ -1,6 +1,6 @@
 Configuration:
   Debug: false
-  StorageType: LOCAL # LOCAL, MySQL, TRANSFORM, only use this to transform data from MySQL to LOCAL and vice versa
+  StorageType: LOCAL
   Transform:
     From: LOCAL
     To: MySQL
@@ -12,6 +12,12 @@ Configuration:
     Password: root
     SSL: false
   Arenas:
+    Status:
+      Waiting: "&aESPERANDO"
+      Starting: "&6INICIANDO"
+      Playing: "&cEN JUEGO"
+      Ending: "&cTERMINANDO"
+      Disabled: "&4DESACTIVADA"
     Per Arena Chat: true
     Checkpoints:
       Firework:

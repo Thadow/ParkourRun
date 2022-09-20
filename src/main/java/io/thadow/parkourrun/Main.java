@@ -4,17 +4,19 @@ import io.thadow.parkourrun.api.PAPIExpansion;
 import io.thadow.parkourrun.api.ParkourRunAPI;
 import io.thadow.parkourrun.api.server.VersionSupport;
 import io.thadow.parkourrun.arena.Arena;
+import io.thadow.parkourrun.listeners.ArenaEventsListener;
 import io.thadow.parkourrun.listeners.ArenaListener;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.listeners.PlayerListener;
 import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.commands.LeaveCommand;
 import io.thadow.parkourrun.commands.ParkourRunCommand;
-import io.thadow.parkourrun.managers.ConfigurationManager;
 import io.thadow.parkourrun.managers.PlayerDataManager;
 import io.thadow.parkourrun.managers.ScoreboardManager;
+import io.thadow.parkourrun.managers.SignsManager;
+import io.thadow.parkourrun.utils.configurations.MainConfiguration;
 import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
-import io.thadow.parkourrun.utils.configurations.ScoreboardConfiguration;
+import io.thadow.parkourrun.utils.configurations.ScoreboardsConfiguration;
 import io.thadow.parkourrun.utils.configurations.SignsConfiguration;
 import io.thadow.parkourrun.utils.storage.ActionCooldown;
 import io.thadow.parkourrun.utils.storage.Storage;
@@ -70,30 +72,31 @@ public class Main extends JavaPlugin {
             this.getLogger().severe("I can't run on your version: " + version);
             Bukkit.getPluginManager().disablePlugin(this);
         }
-        saveDefaultConfig();
+        MainConfiguration.init();
         MessagesConfiguration.init();
         SignsConfiguration.init();
-        setDebug(getConfig().getBoolean("Configuration.Debug"));
-        ScoreboardConfiguration.registerConfiguration();
+        ScoreboardsConfiguration.init();
+        setDebug(getConfiguration().getBoolean("Configuration.Debug"));
         getCommand("parkourrun").setExecutor(new ParkourRunCommand());
         getCommand("leave").setExecutor(new LeaveCommand());
-        registerListeners(new ArenaListener(), new PlayerListener());
+        registerListeners(new ArenaListener(), new PlayerListener(), new ArenaEventsListener());
         ScoreboardManager.getScoreboardManager().startScoreboards();
         ActionCooldown.createCooldown("cantWinMessage", 5);
-        if (getConfig().getString("Configuration.StorageType").equals("TRANSFORM")) {
-            String from = getConfig().getString("Configuration.Transform.From");
-            String to = getConfig().getString("Configuration.Transform.To");
+        if (getConfiguration().getString("Configuration.StorageType").equals("TRANSFORM")) {
+            String from = getConfiguration().getString("Configuration.Transform.From");
+            String to = getConfiguration().getString("Configuration.Transform.To");
             Bukkit.getConsoleSender().sendMessage("&aTransforming data!");
             PlayerDataManager.getPlayerDataManager().transformData(from, to);
             return;
         }
-        if (getConfig().getString("Configuration.StorageType").equals("MySQL")) {
+        if (getConfiguration().getString("Configuration.StorageType").equals("MySQL")) {
             Storage.getStorage().setupStorage(StorageType.MySQL);
         } else {
-            if (getConfig().getString("Configuration.StorageType").equals("LOCAL")) {
+            if (getConfiguration().getString("Configuration.StorageType").equals("LOCAL")) {
                 Storage.getStorage().setupStorage(StorageType.LOCAL);
             }
         }
+        new SignsManager();
         ArenaManager.getArenaManager().loadArenas();
         PlayerDataManager.getPlayerDataManager().loadPlayers();
         new ParkourRunAPI(this);
@@ -130,6 +133,9 @@ public class Main extends JavaPlugin {
         Arrays.stream(listeners).forEach(listener -> getInstance().getServer().getPluginManager().registerEvents(listener, getInstance()));
     }
 
+    public FileConfiguration getConfiguration() {
+        return MainConfiguration.mainConfiguration.getConfiguration();
+    }
 
     public static FileConfiguration getMessagesConfiguration() {
         return MessagesConfiguration.messagesConfiguration.getConfiguration();
@@ -137,6 +143,10 @@ public class Main extends JavaPlugin {
 
     public static FileConfiguration getSignsConfiguration() {
         return SignsConfiguration.signsConfiguration.getConfiguration();
+    }
+
+    public static FileConfiguration getScoreboardsConfiguration() {
+        return ScoreboardsConfiguration.scoreboardsConfiguration.getConfiguration();
     }
 
     public static boolean isMySQLEnabled() {

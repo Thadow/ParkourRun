@@ -25,6 +25,8 @@ public class SignsConfiguration extends ConfigurationManager {
         signsConfiguration.getConfiguration().addDefault("Status.Playing.Data", 4);
         signsConfiguration.getConfiguration().addDefault("Status.Ending.Material", "STAINED_CLAY");
         signsConfiguration.getConfiguration().addDefault("Status.Ending.Data", 2);
+        signsConfiguration.getConfiguration().addDefault("Status.Disabled.Material", "STAINED_CLAY");
+        signsConfiguration.getConfiguration().addDefault("Status.Disabled.Data", 2);
         signsConfiguration.save();
     }
 }

@@ -85,6 +85,7 @@ public class MessagesConfiguration extends ConfigurationManager {
         configuration.addDefault("Messages.Arena.Already In Arena", "%prefix% &cYa estas en una arena!");
         configuration.addDefault("Messages.Arena.Nobody", "Nadie");
         configuration.addDefault("Messages.Arena.None", "Ninguno");
+        configuration.addDefault("Messages.Arena.No Arenas Available", "%prefix% &cNo hay ninguna arena disponible en este momento.");
         configuration.addDefault("Messages.Arena.Unknown Arena", "%prefix% &cArena no valida");
         configuration.addDefault("Messages.Arena.In Game", "%prefix% &cLa arena ya ha comenzado!");
         configuration.addDefault("Messages.Arena.Ending", "%prefix% &cLa arena esta terminando!");
@@ -227,7 +228,7 @@ public class MessagesConfiguration extends ConfigurationManager {
         configuration.addDefault("Messages.Commands.Main Command.Usages", usagesMessage);
 
 
-        configuration.addDefault("Messages.Commanads.Leave.Can't Leave", "%prefix% &cEste comando solo puede ser ejecutado en arena.");
+        configuration.addDefault("Messages.Commands.Leave.Can't Leave", "%prefix% &cEste comando solo puede ser ejecutado en arena.");
 
         configuration.options().copyDefaults(true);
         messagesConfiguration.save();
