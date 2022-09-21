@@ -2,8 +2,10 @@ package io.thadow.parkourrun.managers;
 
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
+import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.utils.Utils;
 import org.apache.commons.io.FileUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import java.io.File;
@@ -31,7 +33,8 @@ public class ArenaManager {
 
     public Arena getArenaByName(String name) {
         for (Arena arena : arenas) {
-            if (arena.getArenaDisplayName().equals(name)) {
+            String stripName = ChatColor.stripColor(arena.getArenaDisplayName());
+            if (stripName.equals(name)) {
                 return arena;
             }
         }
@@ -63,11 +66,45 @@ public class ArenaManager {
         List<Arena> arenas = Utils.getSorted(getArenas());
 
         for (Arena arena : arenas) {
-            if (addPlayer(player, arena.getArenaID())) {
+            if (handleJoin(player, arena)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean handleJoin(Player player, Arena arena) {
+        if (!Main.isLobbyPresent()) {
+            String message = Main.getMessagesConfiguration().getString("Unknown Lobby");
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return false;
+        }
+        if (arena == null) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Unknown Arena");
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return false;
+        }
+        if (ArenaManager.getArenaManager().getArena(player) != null) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Already In Arena");
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return false;
+        }
+        if (arena.getArenaStatus() == ArenaStatus.PLAYING) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.In Game");
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return false;
+        }
+        if (arena.getArenaStatus() == ArenaStatus.ENDING) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Ending");
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return false;
+        }
+        return addPlayer(player, arena.getArenaID());
     }
 
 

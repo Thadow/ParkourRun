@@ -2,19 +2,9 @@ package io.thadow.parkourrun.managers;
 
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
-import io.thadow.parkourrun.utils.Utils;
-import io.thadow.parkourrun.utils.configurations.SignsConfiguration;
-import io.thadow.parkourrun.utils.debug.Debugger;
-import io.thadow.parkourrun.utils.debug.type.DebugType;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SignsManager {
 
@@ -48,8 +38,8 @@ public class SignsManager {
                     data = "Status.Disabled.Data";
                     break;
             }
-            Main.nms.setJoinSignBackground(sign2.getState(), Material.valueOf(Main.getSignsConfiguration().getString(path)));
-            Main.nms.setJoinSignBackgroundBlockData(sign2.getState(), (byte) Main.getSignsConfiguration().getInt(data));
+            Main.NMS.setJoinSignBackground(sign2.getState(), Material.valueOf(Main.getSignsConfiguration().getString(path)));
+            Main.NMS.setJoinSignBackgroundBlockData(sign2.getState(), (byte) Main.getSignsConfiguration().getInt(data));
             arena.refreshSigns(arena);
         }
     }

@@ -76,9 +76,7 @@ public class ScoreboardsConfiguration extends ConfigurationManager {
         List<String> endingLines = new ArrayList<>();
         endingLines.add("%server_time_yyyy/MM/dd%");
         endingLines.add("&7");
-        endingLines.add("&aArena67: &a%arenaName%");
-        endingLines.add("&7");
-        endingLines.add("&eEnded In: %time%");
+        endingLines.add("&aArena&7: &a%arenaName%");
         endingLines.add("&7");
         endingLines.add("&eGanador: &a%winner%");
         endingLines.add("&7");

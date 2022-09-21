@@ -44,10 +44,86 @@ public class Arena {
     private Map<Integer, String> checkpoints;
     private final Map<Player, Integer> currentPlayerCheckpoint = new HashMap<>();
     private final Map<Player, Integer> nextPlayerCheckpoint = new HashMap<>();
+    private final ArenaConfiguration configuration;
     private List<Block> signs = new ArrayList<>();
 
-    public List<Block> getSigns() {
-        return signs;
+    public Arena(String arenaID) {
+        this.arenaID = arenaID;
+        Bukkit.getPluginManager().callEvent(new ArenaPreLoadEvent(this));
+
+        configuration = new ArenaConfiguration(arenaID, Main.getInstance().getDataFolder() + "/Arenas");
+        YamlConfiguration yamlConfiguration = configuration.getConfiguration();
+        Bukkit.getPluginManager().callEvent(new ArenaConfigurationLoadEvent(this, yamlConfiguration));
+
+        arenaDisplayName = yamlConfiguration.getString("Arena Name");
+        minPlayers = yamlConfiguration.getInt("Min Players");
+        maxPlayers = yamlConfiguration.getInt("Max Players");
+
+        World spawnWorld;
+        double spawnX, spawnY, spawnZ;
+        float spawnYaw, spawnPitch;
+        String spawnLocation = yamlConfiguration.getString("Spawn Location");
+        String[] spawnLocationSplit = spawnLocation.split(";");
+        spawnWorld = Bukkit.getWorld(spawnLocationSplit[0]);
+        spawnX = Double.parseDouble(spawnLocationSplit[1]);
+        spawnY = Double.parseDouble(spawnLocationSplit[2]);
+        spawnZ = Double.parseDouble(spawnLocationSplit[3]);
+        spawnYaw = Float.parseFloat(spawnLocationSplit[4]);
+        spawnPitch = Float.parseFloat(spawnLocationSplit[5]);
+        spawn = new Location(spawnWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch);
+
+        World waitWorld;
+        double waitX, waitY, waitZ;
+        float waitYaw, waitPitch;
+        String waitLocation = yamlConfiguration.getString("Wait Location");
+        String[] waitLocationSplit = waitLocation.split(";");
+        waitWorld = Bukkit.getWorld(waitLocationSplit[0]);
+        waitX = Double.parseDouble(waitLocationSplit[1]);
+        waitY = Double.parseDouble(waitLocationSplit[2]);
+        waitZ = Double.parseDouble(waitLocationSplit[3]);
+        waitYaw = Float.parseFloat(waitLocationSplit[4]);
+        waitPitch = Float.parseFloat(waitLocationSplit[5]);
+        this.waitLocation = new Location(waitWorld, waitX, waitY, waitZ, waitYaw, waitPitch);
+
+        time = yamlConfiguration.getInt("Wait Time To Start");
+        defTime = time;
+
+        reEnableTime = yamlConfiguration.getInt("Re-Enable Time");
+
+        endingTime = yamlConfiguration.getInt("Ending Time");
+
+        maxTime = yamlConfiguration.getInt("Max Time");
+        defMaxTime = maxTime;
+
+        winCorner1 = yamlConfiguration.getString("Win Zone Corner 1");
+        winCorner2 = yamlConfiguration.getString("Win Zone Corner 2");
+
+        arenaCorner1 = yamlConfiguration.getString("Arena Zone Corner 1");
+        arenaCorner2 = yamlConfiguration.getString("Arena Zone Corner 2");
+
+        int totalCheckpoints = yamlConfiguration.getInt("Total Checkpoints");
+        Map<Integer, String> checkpoints2 = new HashMap<>();
+        if (yamlConfiguration.contains("Checkpoints.1")) {
+            for (int checkpoint = 1; checkpoint <= totalCheckpoints; checkpoint++) {
+                String location = "Checkpoints." + checkpoint + ".Location";
+                String corner1 = "Checkpoints." + checkpoint + ".Corner 1";
+                String corner2 = "Checkpoints." + checkpoint + ".Corner 2";
+                String full = yamlConfiguration.getString(location) + "/-/" + yamlConfiguration.getString(corner1) + "/-/" + yamlConfiguration.getString(corner2);
+                checkpoints2.put(checkpoint, full);
+            }
+        }
+        this.checkpoints = checkpoints2;
+
+        enabled = yamlConfiguration.getBoolean("Enabled");
+        if (!enabled) {
+            setArenaStatus(ArenaStatus.DISABLED);
+        } else {
+            setArenaStatus(ArenaStatus.WAITING);
+        }
+
+        registerSings();
+        refreshSigns(this);
+        Bukkit.getPluginManager().callEvent(new ArenaPostLoadEvent(this));
     }
 
     public void addSign(Location location) {
@@ -126,344 +202,8 @@ public class Arena {
                 Location signLocation = new Location(world, x, y, z, yaw, pitch);
                 addSign(signLocation);
                 Debugger.debug(DebugType.INFO, "Sign registered for: " + locationSplit[0]);
-                Debugger.debug(DebugType.INFO, "Arena: " + arenaDisplayName);
             }
         }
-    }
-
-    private final YamlConfiguration configuration;
-    private final ArenaConfiguration arenaConfig;
-
-    public String getCheckpointCorners(Integer id) {
-        return checkpoints.get(id);
-    }
-
-    public Map<Integer, String> getCheckpoints() {
-        return checkpoints;
-    }
-
-    public Integer getPlayerCurrentCheckpoint(Player player) {
-        return currentPlayerCheckpoint.get(player);
-    }
-
-    public void setCurrentPlayerCheckpoint(Player player, Integer id){
-        currentPlayerCheckpoint.remove(player);
-        currentPlayerCheckpoint.put(player, id);
-    }
-
-    public Integer getNextPlayerCheckpoint(Player player) {
-        return nextPlayerCheckpoint.get(player);
-    }
-
-    public void setNextPlayerCheckpoint(Player player, Integer id) {
-        nextPlayerCheckpoint.remove(player);
-        nextPlayerCheckpoint.put(player, id);
-    }
-
-    public Arena(String arenaID) {
-        this.arenaID = arenaID;
-        Bukkit.getPluginManager().callEvent(new ArenaPreLoadEvent(this));
-
-        arenaConfig = new ArenaConfiguration(arenaID, Main.getInstance().getDataFolder() + "/Arenas");
-        configuration = arenaConfig.getConfiguration();
-        Bukkit.getPluginManager().callEvent(new ArenaConfigurationLoadEvent(this, configuration));
-
-        arenaDisplayName = configuration.getString("Arena Name");
-        minPlayers = configuration.getInt("Min Players");
-        maxPlayers = configuration.getInt("Max Players");
-
-        World spawnWorld;
-        double spawnX, spawnY, spawnZ;
-        float spawnYaw, spawnPitch;
-        String spawnLocation = configuration.getString("Spawn Location");
-        String[] spawnLocationSplit = spawnLocation.split(";");
-        spawnWorld = Bukkit.getWorld(spawnLocationSplit[0]);
-        spawnX = Double.parseDouble(spawnLocationSplit[1]);
-        spawnY = Double.parseDouble(spawnLocationSplit[2]);
-        spawnZ = Double.parseDouble(spawnLocationSplit[3]);
-        spawnYaw = Float.parseFloat(spawnLocationSplit[4]);
-        spawnPitch = Float.parseFloat(spawnLocationSplit[5]);
-        spawn = new Location(spawnWorld, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch);
-
-        World waitWorld;
-        double waitX, waitY, waitZ;
-        float waitYaw, waitPitch;
-        String waitLocation = configuration.getString("Wait Location");
-        String[] waitLocationSplit = waitLocation.split(";");
-        waitWorld = Bukkit.getWorld(waitLocationSplit[0]);
-        waitX = Double.parseDouble(waitLocationSplit[1]);
-        waitY = Double.parseDouble(waitLocationSplit[2]);
-        waitZ = Double.parseDouble(waitLocationSplit[3]);
-        waitYaw = Float.parseFloat(waitLocationSplit[4]);
-        waitPitch = Float.parseFloat(waitLocationSplit[5]);
-        this.waitLocation = new Location(waitWorld, waitX, waitY, waitZ, waitYaw, waitPitch);
-
-        time = configuration.getInt("Wait Time To Start");
-        defTime = time;
-
-        reEnableTime = configuration.getInt("Re-Enable Time");
-
-        endingTime = configuration.getInt("Ending Time");
-
-        maxTime = configuration.getInt("Max Time");
-        defMaxTime = maxTime;
-
-        winCorner1 = configuration.getString("Win Zone Corner 1");
-        winCorner2 = configuration.getString("Win Zone Corner 2");
-
-        arenaCorner1 = configuration.getString("Arena Zone Corner 1");
-        arenaCorner2 = configuration.getString("Arena Zone Corner 2");
-
-        int totalCheckpoints = configuration.getInt("Total Checkpoints");
-        Map<Integer, String> checkpoints2 = new HashMap<>();
-        if (configuration.contains("Checkpoints.1")) {
-            for (int checkpoint = 1; checkpoint <= totalCheckpoints; checkpoint++) {
-                String location = "Checkpoints." + checkpoint + ".Location";
-                String corner1 = "Checkpoints." + checkpoint + ".Corner 1";
-                String corner2 = "Checkpoints." + checkpoint + ".Corner 2";
-                String full = configuration.getString(location) + "/-/" + configuration.getString(corner1) + "/-/" + configuration.getString(corner2);
-                checkpoints2.put(checkpoint, full);
-            }
-        }
-        this.checkpoints = checkpoints2;
-
-        enabled = configuration.getBoolean("Enabled");
-        if (!enabled) {
-            setArenaStatus(ArenaStatus.DISABLED);
-        } else {
-            setArenaStatus(ArenaStatus.WAITING);
-        }
-
-        registerSings();
-        refreshSigns(this);
-        Bukkit.getPluginManager().callEvent(new ArenaPostLoadEvent(this));
-    }
-
-    public String getWinCorner1() {
-        return winCorner1;
-    }
-
-    public String getWinCorner2() {
-        return winCorner2;
-    }
-
-    public void setWinCorner1(String corner1) {
-        this.winCorner1 = corner1;
-        arenaConfig.set("Win Zone Corner 1", corner1);
-        arenaConfig.save();
-    }
-
-    public void setWinCorner2(String corner2) {
-        this.winCorner2 = corner2;
-        arenaConfig.set("Win Zone Corner 2", corner2);
-        arenaConfig.save();
-    }
-
-    public String getArenaCorner1() {
-        return arenaCorner1;
-    }
-
-    public void setArenaCorner1(String arenaCorner1) {
-        this.arenaCorner1 = arenaCorner1;
-        arenaConfig.set("Arena Zone Corner 1", arenaCorner1);
-        arenaConfig.save();
-    }
-
-    public void setArenaCorner2(String arenaCorner2) {
-        this.arenaCorner2 = arenaCorner2;
-        arenaConfig.set("Arena Zone Corner 2", arenaCorner2);
-        arenaConfig.save();
-    }
-
-    public void addCheckpoint(int id, String location) {
-        getCheckpoints().put(id, location);
-        String[] locationSplit = location.split("/-/");
-        int totalCheckpoints = arenaConfig.getInt("Total Checkpoints");
-        int newTotal = totalCheckpoints + 1;
-        arenaConfig.set("Checkpoints." + id + ".Corner 1", locationSplit[1]);
-        arenaConfig.set("Checkpoints." + id + ".Corner 2", locationSplit[2]);
-        arenaConfig.set("Checkpoints." + id + ".Location", locationSplit[0]);
-        arenaConfig.set("Total Checkpoints", newTotal);
-        arenaConfig.save();
-    }
-
-    public void deleteCheckpoint(int id) {
-        getCheckpoints().remove(id);
-        arenaConfig.set("Checkpoints." + id + ".Location", null);
-        arenaConfig.set("Checkpoints." + id + ".Corner 2", null);
-        arenaConfig.set("Checkpoints." + id + ".Corner 1", null);
-        arenaConfig.set("Checkpoints." + id, null);
-        arenaConfig.set("Total Checkpoints", id - 1);
-    }
-
-    public YamlConfiguration getConfiguration() {
-        return arenaConfig.getConfiguration();
-    }
-
-    public String getArenaCorner2() {
-        return arenaCorner2;
-    }
-
-    public void setArenaID(String arenaID) {
-        this.arenaID = arenaID;
-    }
-
-    public int getDefTime() {
-        return defTime;
-    }
-
-    public void setDefTime(int defTime) {
-        this.defTime = defTime;
-    }
-
-    public int getDefMaxTime() {
-        return defMaxTime;
-    }
-
-    public void setDefMaxTime(int defMaxTime) {
-        this.defMaxTime = defMaxTime;
-    }
-
-    public void setReEnableTime(int reEnableTime) {
-        this.reEnableTime = reEnableTime;
-        arenaConfig.set("Re-Enable Time", reEnableTime);
-        arenaConfig.save();
-    }
-
-    public void setEndingTime(int endingTime) {
-        this.endingTime = endingTime;
-        arenaConfig.set("Ending Time", endingTime);
-        arenaConfig.save();
-    }
-
-    public void setTime(int time, boolean save, boolean setting) {
-        this.time = time;
-        if (setting) {
-            setDefTime(time);
-        }
-        if (save) {
-            arenaConfig.set("Wait Time To Start", time);
-            arenaConfig.save();
-        }
-    }
-
-    public void setMaxTime(int maxTime, boolean save, boolean setting) {
-        this.maxTime = maxTime;
-        if (setting) {
-            setDefMaxTime(maxTime);
-        }
-        if (save) {
-            arenaConfig.set("Max Time", maxTime);
-            arenaConfig.save();
-        }
-    }
-
-    public int getMaxTime() {
-        return maxTime;
-    }
-
-    public void degreeMaxTime() {
-        maxTime--;
-    }
-
-    public void addMaxTime() {
-        maxTime--;
-    }
-
-    public void degreeTime() {
-        time--;
-    }
-
-    public void addTime() {
-        time++;
-    }
-
-    public String getArenaID() {
-        return arenaID;
-    }
-
-    public String getArenaDisplayName() {
-        return arenaDisplayName;
-    }
-
-    public void setArenaDisplayName(String arenaDisplayName) {
-        this.arenaDisplayName = arenaDisplayName;
-        arenaConfig.set("Arena Name", arenaDisplayName);
-        arenaConfig.save();
-    }
-
-    public void setMinPlayers(int minPlayers) {
-        this.minPlayers = minPlayers;
-        arenaConfig.set("Min Players", minPlayers);
-        arenaConfig.save();
-    }
-
-    public int getMinPlayers() {
-        return minPlayers;
-    }
-
-    public void setMaxPlayers(int maxPlayers) {
-        this.maxPlayers = maxPlayers;
-        arenaConfig.set("Max Players", maxPlayers);
-        arenaConfig.save();
-    }
-
-    public int getMaxPlayers() {
-        return maxPlayers;
-    }
-
-    public void setSpawn(Location spawn, String locationString) {
-        this.spawn = spawn;
-        arenaConfig.set("Spawn Location", locationString);
-        arenaConfig.save();
-    }
-
-    public Location getSpawn() {
-        return spawn;
-    }
-
-    public Location getWaitLocation() {
-        return waitLocation;
-    }
-
-    public void setWaitLocation(Location waitLocation, String waitLocationString) {
-        this.waitLocation = waitLocation;
-        arenaConfig.set("Wait Location", waitLocationString);
-        arenaConfig.save();
-    }
-
-    public void setArenaStatus(ArenaStatus arenaStatus) {
-        ArenaStatus oldStatus = this.arenaStatus;
-        this.arenaStatus = arenaStatus;
-        Bukkit.getPluginManager().callEvent(new ArenaChangeStatusEvent(this, oldStatus, arenaStatus));
-    }
-
-    public ArenaStatus getArenaStatus() {
-        return arenaStatus;
-    }
-
-    public List<Player> getPlayers() {
-        return players;
-    }
-
-    public Player getWinner() {
-        return winner;
-    }
-
-    public void setWinner(Player winner) {
-        this.winner = winner;
-    }
-
-    public int getTime() {
-        return time;
-    }
-
-    public int getReEnableTime() {
-        return reEnableTime;
-    }
-
-    public int getEndingTime() {
-        return endingTime;
     }
 
 
@@ -675,31 +415,6 @@ public class Arena {
         }
     }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-        arenaConfig.set("Enabled", enabled);
-        if (!enabled) {
-            teleportSpawn(true);
-            setArenaStatus(ArenaStatus.DISABLED);
-            Bukkit.getPluginManager().callEvent(new ArenaDisableEvent(this));
-            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Disabled.Message To Players");
-            message = Utils.format(message);
-            broadcast(message);
-        } else {
-            setArenaStatus(ArenaStatus.WAITING);
-            Bukkit.getPluginManager().callEvent(new ArenaEnableEvent(this));
-        }
-    }
-
-    public void broadcast(String message) {
-        for (Player players : getPlayers()) {
-            players.sendMessage(message);
-        }
-    }
 
     public void checkArena() {
         if (getArenaStatus() != ArenaStatus.STARTING) {
@@ -744,13 +459,13 @@ public class Arena {
 
     public void finalizeArena(boolean closingServer) {
         if (closingServer) {
-            teleportSpawn(true);
+            teleportLobby(true);
             return;
         }
         List<String> messages = Main.getMessagesConfiguration().getStringList("Messages.Arena.Tie.Message");
         for (String message : messages) {
-                message = Utils.format(message);
-                broadcast(message);
+            message = Utils.format(message);
+            broadcast(message);
         }
         if (getConfiguration().getBoolean("Extensions.Lose.Add Lose On Tie")) {
             for (Player players : getPlayers()) {
@@ -782,8 +497,9 @@ public class Arena {
         Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID + " ha sido finalizada");
         Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus.toString());
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-            teleportSpawn(false);
+            teleportLobby(false);
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                setWinner(null);
                 this.time = getDefTime();
                 this.maxTime = getDefMaxTime();
                 setArenaStatus(ArenaStatus.WAITING);
@@ -847,8 +563,9 @@ public class Arena {
         Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID + " ha sido finalizada (With Winner)");
         Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus.toString());
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-            teleportSpawn(false);
+            teleportLobby(false);
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                setWinner(null);
                 this.time = getDefTime();
                 this.maxTime = getDefMaxTime();
                 setArenaStatus(ArenaStatus.WAITING);
@@ -875,12 +592,301 @@ public class Arena {
     }
 
 
-    public void teleportSpawn(boolean disabling) {
+    public void teleportLobby(boolean disabling) {
         if (disabling) {
             getPlayers().clear();
             return;
         }
+        for (Player player : getPlayers()) {
+            player.teleport(Utils.getLobbyLocation());
+        }
         getPlayers().clear();
+    }
+
+    public void broadcast(String message) {
+        for (Player players : getPlayers()) {
+            players.sendMessage(message);
+        }
+    }
+
+    public String getCheckpointCorners(Integer id) {
+        return checkpoints.get(id);
+    }
+
+    public Map<Integer, String> getCheckpoints() {
+        return checkpoints;
+    }
+
+
+    public void setCurrentPlayerCheckpoint(Player player, Integer id){
+        currentPlayerCheckpoint.remove(player);
+        currentPlayerCheckpoint.put(player, id);
+    }
+
+    public Integer getCurrentPlayerCheckpoint(Player player) {
+        return currentPlayerCheckpoint.get(player);
+    }
+
+    public void setNextPlayerCheckpoint(Player player, Integer id) {
+        nextPlayerCheckpoint.remove(player);
+        nextPlayerCheckpoint.put(player, id);
+    }
+
+    public Integer getNextPlayerCheckpoint(Player player) {
+        return nextPlayerCheckpoint.get(player);
+    }
+
+    public String getWinCorner1() {
+        return winCorner1;
+    }
+
+    public String getWinCorner2() {
+        return winCorner2;
+    }
+
+    public void setWinCorner1(String corner1) {
+        this.winCorner1 = corner1;
+        configuration.set("Win Zone Corner 1", corner1);
+        configuration.save();
+    }
+
+    public void setWinCorner2(String corner2) {
+        this.winCorner2 = corner2;
+        configuration.set("Win Zone Corner 2", corner2);
+        configuration.save();
+    }
+
+    public String getArenaCorner1() {
+        return arenaCorner1;
+    }
+
+    public void setArenaCorner1(String arenaCorner1) {
+        this.arenaCorner1 = arenaCorner1;
+        configuration.set("Arena Zone Corner 1", arenaCorner1);
+        configuration.save();
+    }
+
+    public void setArenaCorner2(String arenaCorner2) {
+        this.arenaCorner2 = arenaCorner2;
+        configuration.set("Arena Zone Corner 2", arenaCorner2);
+        configuration.save();
+    }
+
+    public void addCheckpoint(int id, String location) {
+        getCheckpoints().put(id, location);
+        String[] locationSplit = location.split("/-/");
+        int totalCheckpoints = configuration.getInt("Total Checkpoints");
+        int newTotal = totalCheckpoints + 1;
+        configuration.set("Checkpoints." + id + ".Corner 1", locationSplit[1]);
+        configuration.set("Checkpoints." + id + ".Corner 2", locationSplit[2]);
+        configuration.set("Checkpoints." + id + ".Location", locationSplit[0]);
+        configuration.set("Total Checkpoints", newTotal);
+        configuration.save();
+    }
+
+    public void deleteCheckpoint(int id) {
+        getCheckpoints().remove(id);
+        configuration.set("Checkpoints." + id + ".Location", null);
+        configuration.set("Checkpoints." + id + ".Corner 2", null);
+        configuration.set("Checkpoints." + id + ".Corner 1", null);
+        configuration.set("Checkpoints." + id, null);
+        configuration.set("Total Checkpoints", id - 1);
+        configuration.save();
+    }
+
+    public YamlConfiguration getConfiguration() {
+        return configuration.getConfiguration();
+    }
+
+    public String getArenaCorner2() {
+        return arenaCorner2;
+    }
+
+    public void setArenaID(String arenaID) {
+        this.arenaID = arenaID;
+    }
+
+    public int getDefTime() {
+        return defTime;
+    }
+
+    public void setDefTime(int defTime) {
+        this.defTime = defTime;
+    }
+
+    public int getDefMaxTime() {
+        return defMaxTime;
+    }
+
+    public void setDefMaxTime(int defMaxTime) {
+        this.defMaxTime = defMaxTime;
+    }
+
+    public void setReEnableTime(int reEnableTime) {
+        this.reEnableTime = reEnableTime;
+        configuration.set("Re-Enable Time", reEnableTime);
+        configuration.save();
+    }
+
+    public void setEndingTime(int endingTime) {
+        this.endingTime = endingTime;
+        configuration.set("Ending Time", endingTime);
+        configuration.save();
+    }
+
+    public void setTime(int time, boolean save, boolean setting) {
+        this.time = time;
+        if (setting) {
+            setDefTime(time);
+        }
+        if (save) {
+            configuration.set("Wait Time To Start", time);
+            configuration.save();
+        }
+    }
+
+    public void setMaxTime(int maxTime, boolean save, boolean setting) {
+        this.maxTime = maxTime;
+        if (setting) {
+            setDefMaxTime(maxTime);
+        }
+        if (save) {
+            configuration.set("Max Time", maxTime);
+            configuration.save();
+        }
+    }
+
+    public int getMaxTime() {
+        return maxTime;
+    }
+
+    public void degreeMaxTime() {
+        maxTime--;
+    }
+
+    public void addMaxTime() {
+        maxTime--;
+    }
+
+    public void degreeTime() {
+        time--;
+    }
+
+    public void addTime() {
+        time++;
+    }
+
+    public String getArenaID() {
+        return arenaID;
+    }
+
+    public String getArenaDisplayName() {
+        return arenaDisplayName;
+    }
+
+    public void setArenaDisplayName(String arenaDisplayName) {
+        this.arenaDisplayName = arenaDisplayName;
+        configuration.set("Arena Name", arenaDisplayName);
+        configuration.save();
+    }
+
+    public void setMinPlayers(int minPlayers) {
+        this.minPlayers = minPlayers;
+        configuration.set("Min Players", minPlayers);
+        configuration.save();
+    }
+
+    public int getMinPlayers() {
+        return minPlayers;
+    }
+
+    public void setMaxPlayers(int maxPlayers) {
+        this.maxPlayers = maxPlayers;
+        configuration.set("Max Players", maxPlayers);
+        configuration.save();
+    }
+
+    public int getMaxPlayers() {
+        return maxPlayers;
+    }
+
+    public void setSpawn(Location spawn, String locationString) {
+        this.spawn = spawn;
+        configuration.set("Spawn Location", locationString);
+        configuration.save();
+    }
+
+    public Location getSpawn() {
+        return spawn;
+    }
+
+    public Location getWaitLocation() {
+        return waitLocation;
+    }
+
+    public void setWaitLocation(Location waitLocation, String waitLocationString) {
+        this.waitLocation = waitLocation;
+        configuration.set("Wait Location", waitLocationString);
+        configuration.save();
+    }
+
+    public void setArenaStatus(ArenaStatus arenaStatus) {
+        ArenaStatus oldStatus = this.arenaStatus;
+        this.arenaStatus = arenaStatus;
+        Bukkit.getPluginManager().callEvent(new ArenaChangeStatusEvent(this, oldStatus, arenaStatus));
+    }
+
+    public ArenaStatus getArenaStatus() {
+        return arenaStatus;
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public Player getWinner() {
+        return winner;
+    }
+
+    public void setWinner(Player winner) {
+        this.winner = winner;
+    }
+
+    public int getTime() {
+        return time;
+    }
+
+    public int getReEnableTime() {
+        return reEnableTime;
+    }
+
+    public int getEndingTime() {
+        return endingTime;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        configuration.set("Enabled", enabled);
+        configuration.save();
+        if (!enabled) {
+            teleportLobby(true);
+            setArenaStatus(ArenaStatus.DISABLED);
+            Bukkit.getPluginManager().callEvent(new ArenaDisableEvent(this));
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Disabled.Message To Players");
+            message = Utils.format(message);
+            broadcast(message);
+        } else {
+            setArenaStatus(ArenaStatus.WAITING);
+            Bukkit.getPluginManager().callEvent(new ArenaEnableEvent(this));
+        }
+    }
+
+    public List<Block> getSigns() {
+        return signs;
     }
 
     public void cancel(int taskID) {

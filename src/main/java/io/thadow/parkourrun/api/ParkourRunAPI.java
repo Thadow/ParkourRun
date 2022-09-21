@@ -11,13 +11,8 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 public class ParkourRunAPI {
-    private Main main;
 
-    public ParkourRunAPI(Main main) {
-        this.main = main;
-    }
-
-    public static int getPlayerWins(String playerName) {
+    public static Integer getPlayerWins(String playerName) {
         PlayerData playerData = PlayerDataManager.getPlayerDataManager().getPlayerData(playerName);
         if (playerData != null) {
             return playerData.getWins();
@@ -26,7 +21,7 @@ public class ParkourRunAPI {
         }
     }
 
-    public static int getPlayerLoses(String playerName) {
+    public static Integer getPlayerLoses(String playerName) {
         PlayerData playerData = PlayerDataManager.getPlayerDataManager().getPlayerData(playerName);
         if (playerData != null) {
             return playerData.getLoses();
@@ -81,6 +76,43 @@ public class ParkourRunAPI {
         }
     }
 
+    public static String getFormattedArenaStatus(String arenaID) {
+        Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+        if (arena == null) {
+            arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+        }
+        if (arena != null) {
+            String waiting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Waiting");
+            String starting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Starting");
+            String playing = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Playing");
+            String ending = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Ending");
+            String disabled = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Disabled");
+            String status;
+            switch (arena.getArenaStatus()) {
+                case WAITING:
+                    status = waiting;
+                    break;
+                case STARTING:
+                    status = starting;
+                    break;
+                case PLAYING:
+                    status = playing;
+                    break;
+                case ENDING:
+                    status = ending;
+                    break;
+                case DISABLED:
+                    status = disabled;
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + arena.getArenaStatus());
+            }
+            return status;
+        } else {
+            return "Unknown Arena";
+        }
+    }
+
     public static ArenaStatus getPlayerArenaStatus(Player player) {
         Arena arena = ArenaManager.getArenaManager().getArena(player);
         if (arena != null) {
@@ -123,7 +155,7 @@ public class ParkourRunAPI {
         if (arena != null) {
             return arena.getPlayers().size();
         } else {
-            return null;
+            return 0;
         }
     }
 
@@ -132,7 +164,7 @@ public class ParkourRunAPI {
         if (arena != null) {
             return arena.getPlayers().size();
         } else {
-            return null;
+            return 0;
         }
     }
 
@@ -144,7 +176,7 @@ public class ParkourRunAPI {
         if (arena != null) {
             return arena.getMinPlayers();
         } else {
-            return null;
+            return 0;
         }
     }
 
@@ -153,7 +185,7 @@ public class ParkourRunAPI {
         if (arena != null) {
             return arena.getMinPlayers();
         } else {
-            return null;
+            return 0;
         }
     }
 
@@ -165,7 +197,7 @@ public class ParkourRunAPI {
         if (arena != null) {
             return arena.getMaxPlayers();
         } else {
-            return null;
+            return 0;
         }
     }
 
@@ -174,7 +206,7 @@ public class ParkourRunAPI {
         if (arena != null) {
             return arena.getMaxPlayers();
         } else {
-            return null;
+            return 0;
         }
     }
 }

@@ -34,7 +34,7 @@ public class CheckpointManager {
             return 0;
         }
         final Arena arena = ArenaManager.getArenaManager().getArena(player);
-        return arena.getPlayerCurrentCheckpoint(player);
+        return arena.getCurrentPlayerCheckpoint(player);
     }
 
     public Integer getPlayerNextCheckpoint(final Player player) {

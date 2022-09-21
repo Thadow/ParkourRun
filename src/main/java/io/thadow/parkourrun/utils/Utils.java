@@ -4,10 +4,7 @@ import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.ArenaManager;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
@@ -22,34 +19,6 @@ public class Utils {
         message = replace(message,"%prefix%", Main.getMessagesConfiguration().getString("Prefix"));
         message = colorize(message);
         return message;
-    }
-
-    public static void handleJoin(Player player, Arena arena) {
-        if (arena == null) {
-            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Unknown Arena");
-            message = Utils.format(message);
-            player.sendMessage(message);
-            return;
-        }
-        if (ArenaManager.getArenaManager().getArena(player) != null) {
-            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Already In Arena");
-            message = Utils.format(message);
-            player.sendMessage(message);
-            return;
-        }
-        if (arena.getArenaStatus() == ArenaStatus.PLAYING) {
-            String message = Main.getMessagesConfiguration().getString("Messages.Arena.In Game");
-            message = Utils.format(message);
-            player.sendMessage(message);
-            return;
-        }
-        if (arena.getArenaStatus() == ArenaStatus.ENDING) {
-            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Ending");
-            message = Utils.format(message);
-            player.sendMessage(message);
-            return;
-        }
-        ArenaManager.getArenaManager().addPlayer(player, arena.getArenaID());
     }
 
     public static void playSound(Player player, String path) {
@@ -135,6 +104,15 @@ public class Utils {
         return blocks;
     }
 
+    public static Location getLobbyLocation() {
+        String world = Main.getInstance().getConfiguration().getString("Configuration.Lobby.Location.World");
+        double x = Double.parseDouble(Main.getInstance().getConfiguration().getString("Configuration.Lobby.Location.X"));
+        double y = Double.parseDouble(Main.getInstance().getConfiguration().getString("Configuration.Lobby.Location.Y"));
+        double z = Double.parseDouble(Main.getInstance().getConfiguration().getString("Configuration.Lobby.Location.Z"));
+        float yaw = Float.parseFloat(Main.getInstance().getConfiguration().getString("Configuration.Lobby.Location.Yaw"));
+        float pitch = Float.parseFloat(Main.getInstance().getConfiguration().getString("Configuration.Lobby.Location.Pitch"));
+        return new Location(Bukkit.getWorld(world), x, y, z, yaw, pitch);
+    }
 
     public static String replace(String message, String from, String to) {
         return message.replace(from, to);

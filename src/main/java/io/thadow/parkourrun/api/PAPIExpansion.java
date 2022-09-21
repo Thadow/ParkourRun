@@ -61,6 +61,11 @@ public class PAPIExpansion extends PlaceholderExpansion {
             return Objects.requireNonNull(ParkourRunAPI.getArenaStatus(arenaID)).toString();
         }
 
+        if(identifier.startsWith("arena_status_formatted_")) {
+            String arenaID = identifier.replace("arena_status_formatted_", "");
+            return ParkourRunAPI.getFormattedArenaStatus(arenaID);
+        }
+
         if(identifier.startsWith("arena_name_")) {
             String arenaID = identifier.replace("arena_name_", "");
             return ParkourRunAPI.getArenaDisplayName(arenaID);

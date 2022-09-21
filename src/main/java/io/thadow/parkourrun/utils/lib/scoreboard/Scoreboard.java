@@ -720,7 +720,6 @@ public class Scoreboard {
             line = Utils.replace(line, "%wins%", String.valueOf(ParkourRunAPI.getPlayerWins(player.getName())));
             line = Utils.replace(line, "%loses%", String.valueOf(ParkourRunAPI.getPlayerLoses(player.getName())));
             line = Utils.replace(line, "%arenaName%", ParkourRunAPI.getArenaDisplayName(arena.getArenaID()));
-            line = Utils.replace(line, "%time%", Utils.getFormattedTime(arena.getMaxTime() + 1));
             line = arena.getWinner() != null ? Utils.replace(line, "%winner%", arena.getWinner().getName()) : Utils.replace(line, "%winner%", Main.getMessagesConfiguration().getString("Messages.Arena.Nobody"));
             line = PlaceholderAPI.setPlaceholders(player, line);
             line = Utils.colorize(line);

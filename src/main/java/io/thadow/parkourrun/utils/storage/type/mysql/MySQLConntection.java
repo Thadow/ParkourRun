@@ -50,6 +50,7 @@ public class MySQLConntection {
                 Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aDatabase conntected."));
                 MySQLStorage.createTable();
                 Main.setMysql(true);
+                Bukkit.getConsoleSender().sendMessage(Utils.colorize("&cMySQL Storage enabled."));
             }
         } catch (SQLException | ClassNotFoundException e) {
             Bukkit.getConsoleSender().sendMessage(Utils.colorize("&cError while connecting to the database."));

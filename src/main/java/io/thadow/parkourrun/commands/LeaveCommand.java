@@ -26,7 +26,7 @@ public class LeaveCommand implements CommandExecutor {
                 return true;
             }
             ArenaManager.getArenaManager().removePlayer(player, arena.getArenaStatus() == ArenaStatus.ENDING);
-            player.teleport(player.getWorld().getSpawnLocation());
+            player.teleport(Utils.getLobbyLocation());
         } else {
             Permission.deny(player, "parkourrun.commands.leave");
         }

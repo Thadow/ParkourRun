@@ -3,6 +3,7 @@ package io.thadow.parkourrun.utils.storage.type.local;
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.data.PlayerData;
 import io.thadow.parkourrun.managers.PlayerDataManager;
+import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.debug.Debugger;
 import io.thadow.parkourrun.utils.debug.type.DebugType;
 import org.bukkit.Bukkit;
@@ -47,7 +48,7 @@ public class LocalStorage {
                 exception.printStackTrace();
             }
         }
-        Bukkit.getConsoleSender().sendMessage("&aLocalStorage enabled");
+        Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aLocal Storage enabled."));
     }
 
     public static void save() {

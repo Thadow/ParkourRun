@@ -113,30 +113,19 @@ public class PlayerListener implements Listener {
                         }
                         arenaNameStrip = ChatColor.stripColor(arena.getArenaDisplayName());
                         List<String> locations = Main.getSignsConfiguration().getStringList("Locations");
-                        locations.remove(arenaNameStrip + ";" + stringLocationConfigFormat(event.getBlock().getLocation()));
-                        SignsConfiguration.signsConfiguration.save();
-                        SignsConfiguration.signsConfiguration.set("Locations", locations);
-                        SignsConfiguration.signsConfiguration.save();
-                        player.sendMessage("§a▪ §7Sign removed for arena: " + arenaNameStrip);
-                    }
-                }
-            }
-        }
-    }
-
-    public boolean areEquals(Location location1, Location location2) {
-        if (location1.getX() == location2.getX()) {
-            if (location1.getY() == location2.getY()) {
-                if (location1.getZ() == location2.getZ()) {
-                    if (location1.getYaw() == location2.getYaw()) {
-                        if (location1.getPitch() == location2.getPitch()) {
-                            return location1.getWorld() == location2.getWorld();
+                        if (locations.contains(arenaNameStrip + ";" + stringLocationConfigFormat(event.getBlock().getLocation()))) {
+                            locations.remove(arenaNameStrip + ";" + stringLocationConfigFormat(event.getBlock().getLocation()));
+                            SignsConfiguration.signsConfiguration.set("Locations", locations);
+                            SignsConfiguration.signsConfiguration.save();
+                            String message = Main.getMessagesConfiguration().getString("Messages.Signs.Sign Removed");
+                            message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                            message = Utils.format(message);
+                            player.sendMessage(message);
                         }
                     }
                 }
             }
         }
-        return false;
     }
 
     @EventHandler
@@ -232,8 +221,11 @@ public class PlayerListener implements Listener {
                     arena = ArenaManager.getArenaManager().getArenaByName(event.getLine(1));
                 }
                 if (arena != null) {
-                    player.sendMessage("§a▪ §7Sign saved for arena: " + event.getLine(1));
                     arena.addSign(event.getBlock().getLocation());
+                    String message = Main.getMessagesConfiguration().getString("Messages.Signs.Sign Added");
+                    message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                    message = Utils.format(message);
+                    player.sendMessage(message);
                     Sign sign = (Sign) event.getBlock().getState();
                     int line = 0;
                     String waiting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Waiting");
@@ -269,7 +261,9 @@ public class PlayerListener implements Listener {
                     sign.update(true);
                 }
             } else {
-                player.sendMessage("§c▪ §7You didn't set any arena yet!");
+                String message = Main.getMessagesConfiguration().getString("Messages.Arena.Unknown Arena");
+                message = Utils.format(message);
+                player.sendMessage(message);
             }
         }
     }
@@ -313,7 +307,7 @@ public class PlayerListener implements Listener {
                         if (arena == null) {
                             arena = ArenaManager.getArenaManager().getArenaByName(arenaID);
                         }
-                        Utils.handleJoin(e.getPlayer(), arena);
+                        ArenaManager.getArenaManager().handleJoin(e.getPlayer(), arena);
                     }
                 }
             }
@@ -322,5 +316,20 @@ public class PlayerListener implements Listener {
 
     public String stringLocationConfigFormat(Location loc) {
         return loc.getX() + ";" + loc.getY() + ";" + loc.getZ() + ";" + (double) loc.getYaw() + ";" + (double) loc.getPitch() + ";" + loc.getWorld().getName();
+    }
+
+    public boolean areEquals(Location location1, Location location2) {
+        if (location1.getX() == location2.getX()) {
+            if (location1.getY() == location2.getY()) {
+                if (location1.getZ() == location2.getZ()) {
+                    if (location1.getYaw() == location2.getYaw()) {
+                        if (location1.getPitch() == location2.getPitch()) {
+                            return location1.getWorld() == location2.getWorld();
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

@@ -35,9 +35,10 @@ import java.util.Arrays;
 @SuppressWarnings("all")
 public class Main extends JavaPlugin {
     private static Main instance;
-    public static VersionSupport nms;
+    public static VersionSupport NMS;
     private static boolean mysql = false;
     private static boolean debug = false;
+    private static boolean lobby = false;
     private static boolean versionSupported = false;
     private static final String version = Bukkit.getServer().getClass().getName().split("\\.")[3];
 
@@ -55,7 +56,7 @@ public class Main extends JavaPlugin {
         }
         try {
             this.getLogger().info("Loadin support for: " + version);
-            nms = (VersionSupport) supp.getConstructor(Class.forName("org.bukkit.plugin.Plugin"), String.class).newInstance(this, version);
+            NMS = (VersionSupport) supp.getConstructor(Class.forName("org.bukkit.plugin.Plugin"), String.class).newInstance(this, version);
             versionSupported = true;
         } catch (InstantiationException | NoSuchMethodException | ClassNotFoundException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
@@ -77,6 +78,9 @@ public class Main extends JavaPlugin {
         SignsConfiguration.init();
         ScoreboardsConfiguration.init();
         setDebug(getConfiguration().getBoolean("Configuration.Debug"));
+        if (getConfiguration().contains("Configuration.Lobby.Location.World")) {
+            lobby = true;
+        }
         getCommand("parkourrun").setExecutor(new ParkourRunCommand());
         getCommand("leave").setExecutor(new LeaveCommand());
         registerListeners(new ArenaListener(), new PlayerListener(), new ArenaEventsListener());
@@ -98,7 +102,7 @@ public class Main extends JavaPlugin {
         new SignsManager();
         ArenaManager.getArenaManager().loadArenas();
         PlayerDataManager.getPlayerDataManager().loadPlayers();
-        new ParkourRunAPI(this);
+        new ParkourRunAPI();
         new PAPIExpansion(this).register();
         ScoreboardManager.getScoreboardManager().startScoreboards();
     }
@@ -163,5 +167,13 @@ public class Main extends JavaPlugin {
 
     public static void setDebug(boolean debug) {
         Main.debug = debug;
+    }
+
+    public static boolean isLobbyPresent() {
+        return lobby;
+    }
+
+    public static void setIsLobbyPresent(boolean isLobbyPresent) {
+        lobby = isLobbyPresent;
     }
 }

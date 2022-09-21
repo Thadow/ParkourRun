@@ -52,13 +52,13 @@ public class ConfigurationManager {
 
     public void set(String path, Object value) {
         configuration.set(path, value);
-        save();
     }
 
     public void save() {
         try {
             Debugger.debug(DebugType.INFO, "&aSaving: " + this.file.getPath());
             configuration.save(file);
+            reload();
         } catch (IOException exception) {
             Debugger.debug(DebugType.ALERT, "&cError while saving: " + file.getPath());
             Debugger.debug(DebugType.ALERT, "&cError cause: " + exception.getCause());

@@ -19,6 +19,7 @@ public class MessagesConfiguration extends ConfigurationManager {
         YamlConfiguration configuration = messagesConfiguration.getConfiguration();
         configuration.addDefault("Prefix", "&8[&6ParkourRun&8]");
         configuration.addDefault("No Permission", "%prefix% &cNo tienes el permiso necesario para ejecutar esta acción &7(&e%permNode%&7)");
+        configuration.addDefault("Unknown Lobby", "%prefix% &cPrimero necesitas cambiar la localización del lobby! (&7/pkr setLobby)");
 
 
         configuration.addDefault("Messages.Invalid Arena Parameter.Arena ID", "%prefix% &cParámetro Invalido (ArenaID / %arenaID%)");
@@ -46,11 +47,11 @@ public class MessagesConfiguration extends ConfigurationManager {
         configuration.addDefault("Messages.Arena.Arena Already Disabled", "%prefix% &cLa arena ya esta desactivada");
 
 
-        configuration.addDefault("Messages.Arena.Parameter Changed.Arena Disabled.Message", "%prefix% &cLa arena ha sido desactivada correctamente!");
+        configuration.addDefault("Messages.Arena.Parameter Changed.Arena Disabled.Message", "%prefix% &aLa arena ha sido desactivada correctamente!");
         configuration.addDefault("Messages.Arena.Parameter Changed.Arena Disabled.Message To Players", "%prefix% &cLa arena ha sido desactivada, todos han sido enviados al spawn.");
         configuration.addDefault("Messages.Arena.Parameter Changed.Arena Enabled", "%prefix% &aLa arena ha sido activada correctamente!");
-        configuration.addDefault("Messages.Arena.Parameter Changed.Spawn Location Set", "%prefix% &aLocalización del spawn cambiada correctamente! &7(World: %world%, XYZ: %x%-%y%-%z%, Pitch: %pitch%, Yaw: %yaw% - ArenaID: %arenaID%)");
-        configuration.addDefault("Messages.Arena.Parameter Changed.Wait Location Set", "%prefix% &aLocalización del spawn de espera cambiada correctamente! &7(World: %world%, XYZ: %x%-%y%-%z%, Pitch: %pitch%, Yaw: %yaw% - ArenaID: %arenaID%)");
+        configuration.addDefault("Messages.Arena.Parameter Changed.Spawn Location Set", "%prefix% &aLocalización del spawn cambiada correctamente! &7(World: %world%, XYZ: %x%/%y%/%z%, Pitch: %pitch%, Yaw: %yaw% - ArenaID: %arenaID%)");
+        configuration.addDefault("Messages.Arena.Parameter Changed.Wait Location Set", "%prefix% &aLocalización del spawn de espera cambiada correctamente! &7(World: %world%, XYZ: %x%/%y%/%z%, Pitch: %pitch%, Yaw: %yaw% - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Min Players Set", "%prefix% &aCantidad minima de jugadores cambiada correctamente! &7(Cantidad: %minPlayers% - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Max Players Set", "%prefix% &aCantidad maxima de jugadores cambiada correctamente! &7(Cantidad: %maxPlayers% - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Wait Time Set", "%prefix% &aTiempo de espera cambiado correctamente! &7(Tiempo: %time% - ArenaID: %arenaID%)");
@@ -58,8 +59,8 @@ public class MessagesConfiguration extends ConfigurationManager {
         configuration.addDefault("Messages.Arena.Parameter Changed.Ending Time Set", "%prefix% &aTiempo de finalización cambiado correctamente! &7(Tiempo: %time% - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Max Time Set", "%prefix% &aTiempo maximo cambiado correctamente! &7(Tiempo: %time% - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Arena Name Set", "%prefix% &aNombre de la arena cambiado correctamente! &7(Nombre: %arenaName%&7 - ArenaID: %arenaID%)");
-        configuration.addDefault("Messages.Arena.Parameter Changed.Win Zone Set", "%prefix% &aRegion de la WinZone cambiada correctamente! &7(XYZ: %x%-%y%-%z%, Esquina: %corner% - ArenaID: %arenaID%)");
-        configuration.addDefault("Messages.Arena.Parameter Changed.Arena Zone Set", "%prefix% &cRegion de la Arena cambiada correctamente! &7(XYZ: %x%-%y%-%z%, Esquina: %corner% - ArenaID: %arenaID%)");
+        configuration.addDefault("Messages.Arena.Parameter Changed.Win Zone Set", "%prefix% &aRegion de la WinZone cambiada correctamente! &7(XYZ: %x%/%y%/%z%, Esquina: %corner% - ArenaID: %arenaID%)");
+        configuration.addDefault("Messages.Arena.Parameter Changed.Arena Zone Set", "%prefix% &aRegion de la Arena cambiada correctamente! &7(XYZ: %x%/%y%/%z%, Esquina: %corner% - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Checkpoint Added", "%prefix% &aCheckpoint añadido correctamente! &7(ID: %checkpointID%, Total: %totalCheckpoints% - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Checkpoint Deleted", "%prefix% &aCheckpoint removido correctamente! &7(ID: %checkpointID%, Total: %totalCheckpoints% - ArenaID: %arenaID%)");
 
@@ -74,14 +75,17 @@ public class MessagesConfiguration extends ConfigurationManager {
         infoMessage.add("&eWait To Start Time: %waitTime%");
         infoMessage.add("&eRe-Enable Time: %reEnableTime%");
         infoMessage.add("&eEnding Time: %endingTime%");
+        infoMessage.add("&eMax Time: %maxTime%");
         infoMessage.add("&eMin Players: %minPlayers%");
         infoMessage.add("&eMax Players: %maxPlayers%");
-        infoMessage.add("&eTotal Checkpoints: %totalCheckpoints");
+        infoMessage.add("&eTotal Checkpoints: %totalCheckpoints%");
         infoMessage.add("");
         infoMessage.add("&m                                         ");
         configuration.addDefault("Messages.Arena.Parameter Changed.Show Info.Message", infoMessage);
 
 
+        configuration.addDefault("Messages.Signs.Sign Added", "%prefix% Cartel agregado correctamente! &7(ArenaID: %arenaID%)");
+        configuration.addDefault("Messages.Signs.Sign Removed", "%prefix% Cartel removido correctamente! &7(ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Already In Arena", "%prefix% &cYa estas en una arena!");
         configuration.addDefault("Messages.Arena.Nobody", "Nadie");
         configuration.addDefault("Messages.Arena.None", "Ninguno");
@@ -96,6 +100,7 @@ public class MessagesConfiguration extends ConfigurationManager {
         configuration.addDefault("Messages.Arena.Player Leave In Game", "&a%player% &esalió");
 
         configuration.addDefault("Messages.Arena.Checkpoint.Need All", "&cNecesitas todos los checkpoints para ganar!");
+        configuration.addDefault("Messages.Arena.Checkpoint.No Checkpoints", "&cLa arena no tiene ningun checkpoint!");
         configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Enabled", true);
         configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Fade In", 20);
         configuration.addDefault("Messages.Arena.Checkpoint.On Get Checkpoint.Titles.Stay", 30);
@@ -210,6 +215,7 @@ public class MessagesConfiguration extends ConfigurationManager {
         usagesMessage.add("&e/pkr join (arenaID)                ");
         usagesMessage.add("&e/pkr join random                   ");
         usagesMessage.add("&e/leave                             ");
+        usagesMessage.add("&e/prk setLobby                      ");
         usagesMessage.add("&e/pkr setSpawn (arenaID)            ");
         usagesMessage.add("&e/pkr setWaitSpawn (arenaID)        ");
         usagesMessage.add("&e/pkr setMinPlayers (minPlayers) (arenaID)");
@@ -222,10 +228,11 @@ public class MessagesConfiguration extends ConfigurationManager {
         usagesMessage.add("&e/pkr setWinZone pos1/pos2 (arenaID) ");
         usagesMessage.add("&e/pkr setArenaZone pos1/pos2 (arenaID)");
         usagesMessage.add("&e/pkr addCheckpoint (arenaID)        ");
-        usagesMessage.add("&e/pkr deleteCheckpoint (arenaID)     ");
+        usagesMessage.add("&e/pkr deleteLastCheckpoint (arenaID)     ");
         usagesMessage.add("");
         usagesMessage.add("&m&e---------------------------------");
         configuration.addDefault("Messages.Commands.Main Command.Usages", usagesMessage);
+        configuration.addDefault("Messages.Commands.Main Command.Lobby Location Set", "%prefix% &aLocalización del lobby cambiada correctamente! &7(World: %world%, XYZ: %x%/%y%/%z%, Pitch: %pitch%, Yaw: %yaw%)");
 
 
         configuration.addDefault("Messages.Commands.Leave.Can't Leave", "%prefix% &cEste comando solo puede ser ejecutado en arena.");
