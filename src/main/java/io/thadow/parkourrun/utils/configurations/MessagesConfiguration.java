@@ -60,7 +60,8 @@ public class MessagesConfiguration extends ConfigurationManager {
         configuration.addDefault("Messages.Arena.Parameter Changed.Max Time Set", "%prefix% &aTiempo maximo cambiado correctamente! &7(Tiempo: %time% - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Arena Name Set", "%prefix% &aNombre de la arena cambiado correctamente! &7(Nombre: %arenaName%&7 - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Win Zone Set", "%prefix% &aRegion de la WinZone cambiada correctamente! &7(XYZ: %x%/%y%/%z%, Esquina: %corner% - ArenaID: %arenaID%)");
-        configuration.addDefault("Messages.Arena.Parameter Changed.Arena Zone Set", "%prefix% &aRegion de la Arena cambiada correctamente! &7(XYZ: %x%/%y%/%z%, Esquina: %corner% - ArenaID: %arenaID%)");
+        configuration.addDefault("Messages.Arena.Parameter Changed.Arena Zone Set", "%prefix% &aRegion de la ArenaZone cambiada correctamente! &7(XYZ: %x%/%y%/%z%, Esquina: %corner% - ArenaID: %arenaID%)");
+        configuration.addDefault("Messages.Arena.Parameter Changed.Waiting Zone Set", "%prefix% &aRegion de la WaitingZone cambiada correctamente! &7(XYZ: %x%/%y%/%z%, Esquina: %corner% - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Checkpoint Added", "%prefix% &aCheckpoint añadido correctamente! &7(ID: %checkpointID%, Total: %totalCheckpoints% - ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Parameter Changed.Checkpoint Deleted", "%prefix% &aCheckpoint removido correctamente! &7(ID: %checkpointID%, Total: %totalCheckpoints% - ArenaID: %arenaID%)");
 
@@ -84,8 +85,8 @@ public class MessagesConfiguration extends ConfigurationManager {
         configuration.addDefault("Messages.Arena.Parameter Changed.Show Info.Message", infoMessage);
 
 
-        configuration.addDefault("Messages.Signs.Sign Added", "%prefix% Cartel agregado correctamente! &7(ArenaID: %arenaID%)");
-        configuration.addDefault("Messages.Signs.Sign Removed", "%prefix% Cartel removido correctamente! &7(ArenaID: %arenaID%)");
+        configuration.addDefault("Messages.Signs.Sign Added", "%prefix% &aCartel agregado correctamente! &7(ArenaID: %arenaID%)");
+        configuration.addDefault("Messages.Signs.Sign Removed", "%prefix% &cCartel removido correctamente! &7(ArenaID: %arenaID%)");
         configuration.addDefault("Messages.Arena.Already In Arena", "%prefix% &cYa estas en una arena!");
         configuration.addDefault("Messages.Arena.Nobody", "Nadie");
         configuration.addDefault("Messages.Arena.None", "Ninguno");
@@ -143,7 +144,7 @@ public class MessagesConfiguration extends ConfigurationManager {
 
 
         List<String> startedMessage = new ArrayList<>();
-        startedMessage.add("asd");
+        startedMessage.add("&6Iniciamos!");
         configuration.addDefault("Messages.Arena.Started.Message", startedMessage);
 
         configuration.addDefault("Messages.Arena.Started.Titles.Enabled", true);
@@ -171,8 +172,6 @@ public class MessagesConfiguration extends ConfigurationManager {
         configuration.addDefault("Messages.Arena.Tie.Sound.Enabled", true);
         configuration.addDefault("Messages.Arena.Tie.Sound.Sound", "NOTE_PLING;10;10");
 
-
-        configuration.addDefault("Messages.Arena.Ended.Fireworks.Enabled", true);
 
         List<String> endedMessage = new ArrayList<>();
         endedMessage.add("&e&m                               ");
@@ -215,6 +214,7 @@ public class MessagesConfiguration extends ConfigurationManager {
         usagesMessage.add("&e/pkr join (arenaID)                ");
         usagesMessage.add("&e/pkr join random                   ");
         usagesMessage.add("&e/leave                             ");
+        usagesMessage.add("&e/pkr build                         ");
         usagesMessage.add("&e/prk setLobby                      ");
         usagesMessage.add("&e/pkr setSpawn (arenaID)            ");
         usagesMessage.add("&e/pkr setWaitSpawn (arenaID)        ");
@@ -225,14 +225,18 @@ public class MessagesConfiguration extends ConfigurationManager {
         usagesMessage.add("&e/pkr setEndingTime (time in seconds) (arenaID)");
         usagesMessage.add("&e/pkr setMaxTime (time in seconds) (arenaID)");
         usagesMessage.add("&e/pkr setArenaName (arenaID) (arenaName)");
-        usagesMessage.add("&e/pkr setWinZone pos1/pos2 (arenaID) ");
-        usagesMessage.add("&e/pkr setArenaZone pos1/pos2 (arenaID)");
-        usagesMessage.add("&e/pkr addCheckpoint (arenaID)        ");
-        usagesMessage.add("&e/pkr deleteLastCheckpoint (arenaID)     ");
+        usagesMessage.add("&e/pkr setWinCorner 1/2          ");
+        usagesMessage.add("&e/pkr setArenaCorner 1/2        ");
+        usagesMessage.add("&e/pkr setWaitingCorner 1/2      ");
+        usagesMessage.add("&e/pkr addCheckpoint (arenaID)       ");
+        usagesMessage.add("&e/pkr deleteLastCheckpoint (arenaID)");
         usagesMessage.add("");
         usagesMessage.add("&m&e---------------------------------");
         configuration.addDefault("Messages.Commands.Main Command.Usages", usagesMessage);
+        configuration.addDefault("Messages.Commands.Main Command.Selecting Corner", "%prefix% &aPor favor seleccione la esquina rompiendo un bloque.");
         configuration.addDefault("Messages.Commands.Main Command.Lobby Location Set", "%prefix% &aLocalización del lobby cambiada correctamente! &7(World: %world%, XYZ: %x%/%y%/%z%, Pitch: %pitch%, Yaw: %yaw%)");
+        configuration.addDefault("Messages.Commands.Main Command.Build Enabled", "%prefix% &aAhora puedes construir!");
+        configuration.addDefault("Messages.Commands.Main Command.Build Disabled", "%prefix% &cYa no puedes contruir");
 
 
         configuration.addDefault("Messages.Commands.Leave.Can't Leave", "%prefix% &cEste comando solo puede ser ejecutado en arena.");

@@ -2,7 +2,7 @@ package io.thadow.parkourrun;
 
 import io.thadow.parkourrun.api.PAPIExpansion;
 import io.thadow.parkourrun.api.ParkourRunAPI;
-import io.thadow.parkourrun.api.server.VersionSupport;
+import io.thadow.parkourrun.api.server.VersionHandler;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.listeners.ArenaEventsListener;
 import io.thadow.parkourrun.listeners.ArenaListener;
@@ -35,7 +35,7 @@ import java.util.Arrays;
 @SuppressWarnings("all")
 public class Main extends JavaPlugin {
     private static Main instance;
-    public static VersionSupport NMS;
+    public static VersionHandler VERSION_HANDLER;
     private static boolean mysql = false;
     private static boolean debug = false;
     private static boolean lobby = false;
@@ -56,7 +56,7 @@ public class Main extends JavaPlugin {
         }
         try {
             this.getLogger().info("Loadin support for: " + version);
-            NMS = (VersionSupport) supp.getConstructor(Class.forName("org.bukkit.plugin.Plugin"), String.class).newInstance(this, version);
+            VERSION_HANDLER = (VersionHandler) supp.getConstructor(Class.forName("org.bukkit.plugin.Plugin"), String.class).newInstance(this, version);
             versionSupported = true;
         } catch (InstantiationException | NoSuchMethodException | ClassNotFoundException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();

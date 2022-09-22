@@ -31,6 +31,7 @@ public class Arena {
     private Player winner = null;
     private String winCorner1, winCorner2;
     private String arenaCorner1, arenaCorner2;
+    private String waitingZoneCorner1, waitingZoneCorner2;
     private boolean enabled;
     private String arenaID;
     private String arenaDisplayName;
@@ -100,6 +101,9 @@ public class Arena {
 
         arenaCorner1 = yamlConfiguration.getString("Arena Zone Corner 1");
         arenaCorner2 = yamlConfiguration.getString("Arena Zone Corner 2");
+
+        waitingZoneCorner1 = yamlConfiguration.getString("Waiting Zone Corner 1");
+        waitingZoneCorner2 = yamlConfiguration.getString("Waiting Zone Corner 2");
 
         int totalCheckpoints = yamlConfiguration.getInt("Total Checkpoints");
         Map<Integer, String> checkpoints2 = new HashMap<>();
@@ -494,8 +498,8 @@ public class Arena {
             }
         }
         setArenaStatus(ArenaStatus.ENDING);
-        Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID + " ha sido finalizada");
-        Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus.toString());
+        Debugger.debug(DebugType.INFO, "&7Arena " + arenaID + " finalized");
+        Debugger.debug(DebugType.INFO, "&7ArenaStatus: " + arenaStatus);
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             teleportLobby(false);
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
@@ -503,8 +507,8 @@ public class Arena {
                 this.time = getDefTime();
                 this.maxTime = getDefMaxTime();
                 setArenaStatus(ArenaStatus.WAITING);
-                Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID +" ha sido habilitada nuevamente");
-                Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus);
+                Debugger.debug(DebugType.INFO, "&7Arena " + arenaID + " has been re-enabled");
+                Debugger.debug(DebugType.INFO, "&7ArenaStatus: " + arenaStatus);
             }, 20L * getReEnableTime());
         }, 20L * getEndingTime());
     }
@@ -550,7 +554,7 @@ public class Arena {
                 Utils.playSound(players, soundPath);
             }
         }
-        if (Main.getMessagesConfiguration().getBoolean("Messages.Arena.Ended.Fireworks.Enabled")) {
+        if (Main.getInstance().getConfiguration().getBoolean("Configuration.Arena.Fireworks For Winner.Enabled")) {
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
             fireworksTaskID = scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
                 if (getArenaStatus() == ArenaStatus.ENDING  && getPlayers().contains(getWinner()) && getWinner() != null) {
@@ -560,8 +564,8 @@ public class Arena {
                 }
             }, 0L, 20L);
         }
-        Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID + " ha sido finalizada (With Winner)");
-        Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus.toString());
+        Debugger.debug(DebugType.INFO, "&7Arena " + arenaID + " finalized (With winner)");
+        Debugger.debug(DebugType.INFO, "&7ArenaStatus: " + arenaStatus);
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             teleportLobby(false);
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
@@ -569,8 +573,8 @@ public class Arena {
                 this.time = getDefTime();
                 this.maxTime = getDefMaxTime();
                 setArenaStatus(ArenaStatus.WAITING);
-                Bukkit.getConsoleSender().sendMessage("[DEBUG] Arena " + arenaID +" ha sido habilitada nuevamente");
-                Bukkit.getConsoleSender().sendMessage("[DEBUG] ArenaStatus: " + arenaStatus);
+                Debugger.debug(DebugType.INFO, "&7Arena " + arenaID + " has been re-enabled");
+                Debugger.debug(DebugType.INFO, "&7ArenaStatus: " + arenaStatus);
             }, 20L * getReEnableTime());
         }, 20L * getEndingTime());
     }
@@ -670,6 +674,26 @@ public class Arena {
         this.arenaCorner2 = arenaCorner2;
         configuration.set("Arena Zone Corner 2", arenaCorner2);
         configuration.save();
+    }
+
+    public void setWaitingZoneCorner1(String waitingZoneCorner1) {
+        this.waitingZoneCorner1 = waitingZoneCorner1;
+        configuration.set("Waiting Zone Corner 1", waitingZoneCorner1);
+        configuration.save();
+    }
+
+    public void setWaitingZoneCorner2(String waitingZoneCorner2) {
+        this.waitingZoneCorner2 = waitingZoneCorner2;
+        configuration.set("Waiting Zone Corner 2", waitingZoneCorner2);
+        configuration.save();
+    }
+
+    public String getWaitingZoneCorner1() {
+        return waitingZoneCorner1;
+    }
+
+    public String getWaitingZoneCorner2() {
+        return waitingZoneCorner2;
     }
 
     public void addCheckpoint(int id, String location) {

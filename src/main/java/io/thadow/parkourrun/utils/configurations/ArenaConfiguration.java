@@ -31,6 +31,8 @@ public class ArenaConfiguration extends ConfigurationManager {
             configuration.addDefault("Win Zone Corner 2", "1;1;1");
             configuration.addDefault("Arena Zone Corner 1", "1;1;1");
             configuration.addDefault("Arena Zone Corner 2", "1;1;1");
+            configuration.addDefault("Waiting Zone Corner 1", "1;1;1");
+            configuration.addDefault("Waiting Zone Corner 2", "1;1:1");
             configuration.addDefault("Total Checkpoints", 0);
             configuration.options().copyDefaults(true);
             save();

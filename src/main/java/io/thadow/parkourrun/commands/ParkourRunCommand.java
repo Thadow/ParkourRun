@@ -5,6 +5,7 @@ import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.CheckpointManager;
+import io.thadow.parkourrun.menu.Menu;
 import io.thadow.parkourrun.utils.Permission;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.MainConfiguration;
@@ -52,6 +53,28 @@ public class ParkourRunCommand implements CommandExecutor {
                 ArenaManager.getArenaManager().handleJoin(player, arena);
             } else {
                 Permission.deny(player, "parkourrun.commands.join");
+            }
+        } else if (args.length == 1 && args[0].equalsIgnoreCase("build")) {
+            if (player.hasPermission("parkourrun.commands.build")) {
+                if (Utils.isInBuildingPlayers(player)) {
+                    Utils.getBuildingPlayers().remove(player);
+                    String message = Main.getMessagesConfiguration().getString("Messages.Commands.Main Command.Build Disabled");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                } else {
+                    Utils.getBuildingPlayers().add(player);
+                    String message = Main.getMessagesConfiguration().getString("Messages.Commands.Main Command.Build Enabled");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                }
+            } else {
+                Permission.deny(player, "parkourrun.commands.build");
+            }
+        } else if (args.length == 1 && args[0].equalsIgnoreCase("gui")) {
+            if (player.hasPermission("parkourrun.commands.gui")) {
+                Menu.openArenaSelectorMenuFor(player, 1);
+            } else {
+                Permission.deny(player, "parkourrun.commands.gui");
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setSpawn")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
@@ -420,7 +443,7 @@ public class ParkourRunCommand implements CommandExecutor {
             } else {
                 Permission.deny(player, "parkourrun.commands.admin");
             }
-        } else if (args.length == 3 && args[0].equalsIgnoreCase("setWinZone") && args[1].equalsIgnoreCase("pos1")) {
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("setWinCorner") && args[1].equalsIgnoreCase("1")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
                 String arenaID = args[2];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
@@ -439,22 +462,14 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
-                NumberFormat numberFormat = NumberFormat.getInstance();
-                numberFormat.setMaximumFractionDigits(2);
-                String format = numberFormat.format(player.getLocation().getBlockX()) + ";" + numberFormat.format(player.getLocation().getBlockY()) + ";" + numberFormat.format(player.getLocation().getBlockZ());
-                arena.setWinCorner1(format);
-                String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Win Zone Set");
-                message = Utils.replace(message, "%x%", numberFormat.format(player.getLocation().getBlockX()));
-                message = Utils.replace(message, "%y%", numberFormat.format(player.getLocation().getBlockY()));
-                message = Utils.replace(message, "%z%", numberFormat.format(player.getLocation().getBlockZ()));
-                message = Utils.replace(message, "%corner%", "1");
-                message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                Utils.getSelectingCorners().put(player, arenaID + "/-/Win Zone Corner 1");
+                String message = Main.getMessagesConfiguration().getString("Messages.Commands.Main Command.Selecting Corner");
                 message = Utils.format(message);
                 player.sendMessage(message);
             } else {
                 Permission.deny(player, "parkourrun.commands.admin");
             }
-        } else if (args.length == 3 && args[0].equalsIgnoreCase("setWinZone") && args[1].equalsIgnoreCase("pos2")) {
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("setWinCorner") && args[1].equalsIgnoreCase("2")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
                 String arenaID = args[2];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
@@ -473,22 +488,14 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
-                NumberFormat numberFormat = NumberFormat.getInstance();
-                numberFormat.setMaximumFractionDigits(2);
-                String format = numberFormat.format(player.getLocation().getBlockX()) + ";" + numberFormat.format(player.getLocation().getBlockY()) + ";" + numberFormat.format(player.getLocation().getBlockZ());
-                arena.setWinCorner2(format);
-                String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Win Zone Set");
-                message = Utils.replace(message, "%x%", numberFormat.format(player.getLocation().getBlockX()));
-                message = Utils.replace(message, "%y%", numberFormat.format(player.getLocation().getBlockY()));
-                message = Utils.replace(message, "%z%", numberFormat.format(player.getLocation().getBlockZ()));
-                message = Utils.replace(message, "%corner%", "2");
-                message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                Utils.getSelectingCorners().put(player, arenaID + "/-/Win Zone Corner 2");
+                String message = Main.getMessagesConfiguration().getString("Messages.Commands.Main Command.Selecting Corner");
                 message = Utils.format(message);
                 player.sendMessage(message);
             } else {
                 Permission.deny(player, "parkourrun.commands.admin");
             }
-        } else if (args.length == 3 && args[0].equalsIgnoreCase("setArenaZone") && args[1].equalsIgnoreCase("pos1")) {
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("setArenaCorner") && args[1].equalsIgnoreCase("1")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
                 String arenaID = args[2];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
@@ -507,22 +514,14 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
-                NumberFormat numberFormat = NumberFormat.getInstance();
-                numberFormat.setMaximumFractionDigits(2);
-                String format = numberFormat.format(player.getLocation().getBlockX()) + ";" + numberFormat.format(player.getLocation().getBlockY()) + ";" + numberFormat.format(player.getLocation().getBlockZ());
-                arena.setArenaCorner1(format);
-                String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Zone Set");
-                message = Utils.replace(message, "%x%", numberFormat.format(player.getLocation().getBlockX()));
-                message = Utils.replace(message, "%y%", numberFormat.format(player.getLocation().getBlockY()));
-                message = Utils.replace(message, "%z%", numberFormat.format(player.getLocation().getBlockZ()));
-                message = Utils.replace(message, "%corner%", "1");
-                message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                Utils.getSelectingCorners().put(player, arenaID + "/-/Arena Zone Corner 1");
+                String message = Main.getMessagesConfiguration().getString("Messages.Commands.Main Command.Selecting Corner");
                 message = Utils.format(message);
                 player.sendMessage(message);
             } else {
                 Permission.deny(player, "parkourrun.commands.admin");
             }
-        } else if (args.length == 3 && args[0].equalsIgnoreCase("setArenaZone") && args[1].equalsIgnoreCase("pos2")) {
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("setArenaCorner") && args[1].equalsIgnoreCase("2")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
                 String arenaID = args[2];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
@@ -541,21 +540,66 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
-                NumberFormat numberFormat = NumberFormat.getInstance();
-                numberFormat.setMaximumFractionDigits(2);
-                String format = numberFormat.format(player.getLocation().getBlockX()) + ";" + numberFormat.format(player.getLocation().getBlockY()) + ";" + numberFormat.format(player.getLocation().getBlockZ());
-                arena.setArenaCorner2(format);
-                String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Zone Set");
-                message = Utils.replace(message, "%x%", numberFormat.format(player.getLocation().getBlockX()));
-                message = Utils.replace(message, "%y%", numberFormat.format(player.getLocation().getBlockY()));
-                message = Utils.replace(message, "%z%", numberFormat.format(player.getLocation().getBlockZ()));
-                message = Utils.replace(message, "%corner%", "2");
-                message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                Utils.getSelectingCorners().put(player, arenaID + "/-/Arena Zone Corner 2");
+                String message = Main.getMessagesConfiguration().getString("Messages.Commands.Main Command.Selecting Corner");
                 message = Utils.format(message);
                 player.sendMessage(message);
             } else {
                 Permission.deny(player, "parkourrun.commands.admin");
             }
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("setWaitingCorner") && args[1].equalsIgnoreCase("1")) {
+            if (player.hasPermission("parkourrun.commands.admin")) {
+                String arenaID = args[2];
+                Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+                if (arena == null) {
+                    arena = ArenaManager.getArenaManager().getArenaByName(arenaID);
+                }
+                if (arena == null) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Unknown Arena");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Can't Modify");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
+                Utils.getSelectingCorners().put(player, arenaID + "/-/Waiting Zone Corner 1");
+                String message = Main.getMessagesConfiguration().getString("Messages.Commands.Main Command.Selecting Corner");
+                message = Utils.format(message);
+                player.sendMessage(message);
+            } else {
+                Permission.deny(player, "parkourrun.commands.admin");
+            }
+    } else if (args.length == 3 && args[0].equalsIgnoreCase("setWaitingCorner") && args[1].equalsIgnoreCase("2")) {
+            if (player.hasPermission("parkourrun.commands.admin")) {
+                String arenaID = args[2];
+                Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+                if (arena == null) {
+                    arena = ArenaManager.getArenaManager().getArenaByName(arenaID);
+                }
+                if (arena == null) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Unknown Arena");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
+                if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Can't Modify");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
+                Utils.getSelectingCorners().put(player, arenaID + "/-/Waiting Zone Corner 2");
+                String message = Main.getMessagesConfiguration().getString("Messages.Commands.Main Command.Selecting Corner");
+                message = Utils.format(message);
+                player.sendMessage(message);
+            } else {
+                Permission.deny(player, "parkourrun.commands.admin");
+            }
+
         } else if (args.length == 2 && args[0].equalsIgnoreCase("addCheckPoint")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
                 String arenaID = args[1];

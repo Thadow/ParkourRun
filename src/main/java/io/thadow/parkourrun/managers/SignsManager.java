@@ -38,8 +38,8 @@ public class SignsManager {
                     data = "Status.Disabled.Data";
                     break;
             }
-            Main.NMS.setJoinSignBackground(sign2.getState(), Material.valueOf(Main.getSignsConfiguration().getString(path)));
-            Main.NMS.setJoinSignBackgroundBlockData(sign2.getState(), (byte) Main.getSignsConfiguration().getInt(data));
+            Main.VERSION_HANDLER.setBackground(sign2.getState(), Material.valueOf(Main.getSignsConfiguration().getString(path)));
+            Main.VERSION_HANDLER.setBlockData(sign2.getState(), (byte) Main.getSignsConfiguration().getInt(data));
             arena.refreshSigns(arena);
         }
     }

@@ -31,7 +31,7 @@ import org.bukkit.util.Vector;
 public class ArenaListener implements Listener {
 
     @EventHandler
-    public void checkPlayerWin(PlayerMoveEvent event) {
+    public void checkPlayerWinZone(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         if (ArenaManager.getArenaManager().getArena(player) != null) {
             Arena arena = ArenaManager.getArenaManager().getArena(player);
@@ -73,7 +73,7 @@ public class ArenaListener implements Listener {
     }
 
     @EventHandler
-    public void checkPlayerZone(PlayerMoveEvent event) {
+    public void checkPlayerArenaZone(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         if (ArenaManager.getArenaManager().getArena(player) != null) {
             Arena arena = ArenaManager.getArenaManager().getArena(player);
@@ -90,10 +90,25 @@ public class ArenaListener implements Listener {
                     }
                     Location location = CheckpointManager.getCheckpointManager().getCheckpointLocation(arena, currentCheckpointID);
                     player.teleport(location);
-                } else if (arena.getArenaStatus() == ArenaStatus.WAITING || arena.getArenaStatus() == ArenaStatus.STARTING) {
-                    player.teleport(arena.getWaitLocation());
                 } else if (arena.getArenaStatus() == ArenaStatus.ENDING) {
                     player.teleport(arena.getSpawn());
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void checkPlayerWaitingZone(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        if (ArenaManager.getArenaManager().getArena(player) != null) {
+            Arena arena = ArenaManager.getArenaManager().getArena(player);
+            if (arena.getArenaStatus() == ArenaStatus.WAITING || arena.getArenaStatus() == ArenaStatus.STARTING) {
+                String[] waitingCorner1 = arena.getWaitingZoneCorner1().split(";");
+                String[] waitingCorner2 = arena.getWaitingZoneCorner2().split(";");
+                Region region = new Region(new Vector(Integer.parseInt(waitingCorner1[0]), Integer.parseInt(waitingCorner1[1]), Integer.parseInt(waitingCorner1[2])),
+                        new Vector(Integer.parseInt(waitingCorner2[0]), Integer.parseInt(waitingCorner2[1]), Integer.parseInt(waitingCorner2[2])));
+                if (!region.isInside(player.getLocation())) {
+                    player.teleport(arena.getWaitLocation());
                 }
             }
         }
@@ -116,6 +131,9 @@ public class ArenaListener implements Listener {
                 if (Utils.isNearBlock(player, 2, underBlock)) {
                     int currentCheckpointID = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);
                     if (currentCheckpointID == 0) {
+                        if (arena.getCheckpointCorners(1) == null) {
+                            return;
+                        }
                         String[] corners = arena.getCheckpointCorners(1).split("/-/");
                         if (corners[1] == null || corners[2] == null) {
                             return;
@@ -273,7 +291,7 @@ public class ArenaListener implements Listener {
     @EventHandler
     public void onPlayerBreakBlock(BlockBreakEvent event) {
         Player player = event.getPlayer();
-        if (ArenaManager.getArenaManager().getArena(player) != null) {
+        if (!Utils.isInBuildingPlayers(player)) {
             event.setCancelled(true);
         }
     }
@@ -281,7 +299,7 @@ public class ArenaListener implements Listener {
     @EventHandler
     public void onPlayerPlaceBlock(BlockPlaceEvent event) {
         Player player = event.getPlayer();
-        if (ArenaManager.getArenaManager().getArena(player) != null) {
+        if (!Utils.isInBuildingPlayers(player)) {
             event.setCancelled(true);
         }
     }
@@ -317,7 +335,7 @@ public class ArenaListener implements Listener {
 
     @EventHandler
     public void onPlayerDamageByEntity(EntityDamageByEntityEvent event) {
-        if (event.getDamager() instanceof Monster) {
+        if (!(event.getDamager() instanceof Player)) {
             Player player = (Player) event.getEntity();
             Arena arena = ArenaManager.getArenaManager().getArena(player);
             if (arena != null) {
@@ -359,13 +377,16 @@ public class ArenaListener implements Listener {
                 Location waitLocation = ArenaManager.getArenaManager().getArena(player).getWaitLocation();
                 Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.teleport(waitLocation), 20L);
             }
+        } else if (ArenaManager.getArenaManager().getArena(player) == null) {
+            Location lobbyLocation = Utils.getLobbyLocation();
+            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.teleport(lobbyLocation), 20L);
         }
     }
 
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
-        if (ArenaManager.getArenaManager().getArena(player) != null) {
+        if (!Utils.isInBuildingPlayers(player)) {
             event.setCancelled(true);
         }
     }
@@ -373,7 +394,7 @@ public class ArenaListener implements Listener {
     @EventHandler
     public void onPlayerPickUpItem(PlayerPickupItemEvent event) {
         Player player = event.getPlayer();
-        if (ArenaManager.getArenaManager().getArena(player) != null) {
+        if (!Utils.isInBuildingPlayers(player)) {
             event.setCancelled(true);
         }
     }

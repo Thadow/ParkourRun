@@ -5,16 +5,14 @@ import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.managers.ConfigurationManager;
 import io.thadow.parkourrun.managers.SignsManager;
+import io.thadow.parkourrun.menu.menus.ArenaSelectorMenu;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.SignsConfiguration;
 import io.thadow.parkourrun.utils.lib.scoreboard.Scoreboard;
 import io.thadow.parkourrun.utils.storage.Storage;
 import io.thadow.parkourrun.utils.storage.StorageType;
 import io.thadow.parkourrun.utils.storage.type.mysql.MySQLStorage;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
@@ -24,12 +22,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -63,6 +65,133 @@ public class PlayerListener implements Listener {
             Scoreboard scoreboard = Scoreboard.scoreboards.get(event.getPlayer().getUniqueId());
             scoreboard.delete();
             Scoreboard.scoreboards.remove(event.getPlayer().getUniqueId());
+        }
+        if (Utils.isSelectingCorners(event.getPlayer())) {
+            Utils.getSelectingCorners().remove(event.getPlayer());
+        }
+        if (Utils.isInBuildingPlayers(event.getPlayer())) {
+            Utils.getBuildingPlayers().remove(event.getPlayer());
+        }
+    }
+
+    @EventHandler
+    public void onPlayerBreakBlockEvent(BlockBreakEvent event) {
+        Player player = event.getPlayer();
+        if (player.hasPermission("parkourrun.commands.admin")) {
+            if (Utils.isSelectingCorners(player)) {
+                event.setCancelled(true);
+                String[] split = Utils.getSelectingCorners().get(player).split("/-/");
+                String arenaID = split[0];
+                Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+                if (arena == null) {
+                    arena = ArenaManager.getArenaManager().getArenaByName(arenaID);
+                }
+                String action = split[1];
+                switch (action) {
+                    case "Win Zone Corner 1": {
+                        NumberFormat numberFormat = NumberFormat.getInstance();
+                        numberFormat.setMaximumFractionDigits(2);
+                        Block block = event.getBlock();
+                        String format = numberFormat.format(block.getLocation().getBlockX()) + ";" + numberFormat.format(block.getLocation().getBlockY()) + ";" + numberFormat.format(block.getLocation().getBlockZ());
+                        arena.setWinCorner1(format);
+                        Utils.getSelectingCorners().remove(player);
+                        String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Win Zone Set");
+                        message = Utils.replace(message, "%x%", numberFormat.format(block.getLocation().getBlockX()));
+                        message = Utils.replace(message, "%y%", numberFormat.format(block.getLocation().getBlockY()));
+                        message = Utils.replace(message, "%z%", numberFormat.format(block.getLocation().getBlockZ()));
+                        message = Utils.replace(message, "%corner%", "1");
+                        message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        break;
+                    }
+                    case "Win Zone Corner 2": {
+                        NumberFormat numberFormat = NumberFormat.getInstance();
+                        numberFormat.setMaximumFractionDigits(2);
+                        Block block = event.getBlock();
+                        String format = numberFormat.format(block.getLocation().getBlockX()) + ";" + numberFormat.format(block.getLocation().getBlockY()) + ";" + numberFormat.format(block.getLocation().getBlockZ());
+                        arena.setWinCorner2(format);
+                        Utils.getSelectingCorners().remove(player);
+                        String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Win Zone Set");
+                        message = Utils.replace(message, "%x%", numberFormat.format(block.getLocation().getBlockX()));
+                        message = Utils.replace(message, "%y%", numberFormat.format(block.getLocation().getBlockY()));
+                        message = Utils.replace(message, "%z%", numberFormat.format(block.getLocation().getBlockZ()));
+                        message = Utils.replace(message, "%corner%", "2");
+                        message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        break;
+                    }
+                    case "Arena Zone Corner 1": {
+                        NumberFormat numberFormat = NumberFormat.getInstance();
+                        numberFormat.setMaximumFractionDigits(2);
+                        Block block = event.getBlock();
+                        String format = numberFormat.format(block.getLocation().getBlockX()) + ";" + numberFormat.format(block.getLocation().getBlockY()) + ";" + numberFormat.format(block.getLocation().getBlockZ());
+                        arena.setArenaCorner1(format);
+                        Utils.getSelectingCorners().remove(player);
+                        String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Zone Set");
+                        message = Utils.replace(message, "%x%", numberFormat.format(block.getLocation().getBlockX()));
+                        message = Utils.replace(message, "%y%", numberFormat.format(block.getLocation().getBlockY()));
+                        message = Utils.replace(message, "%z%", numberFormat.format(block.getLocation().getBlockZ()));
+                        message = Utils.replace(message, "%corner%", "1");
+                        message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        break;
+                    }
+                    case "Arena Zone Corner 2": {
+                        NumberFormat numberFormat = NumberFormat.getInstance();
+                        numberFormat.setMaximumFractionDigits(2);
+                        Block block = event.getBlock();
+                        String format = numberFormat.format(block.getLocation().getBlockX()) + ";" + numberFormat.format(block.getLocation().getBlockY()) + ";" + numberFormat.format(block.getLocation().getBlockZ());
+                        arena.setArenaCorner2(format);
+                        Utils.getSelectingCorners().remove(player);
+                        String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Zone Set");
+                        message = Utils.replace(message, "%x%", numberFormat.format(block.getLocation().getBlockX()));
+                        message = Utils.replace(message, "%y%", numberFormat.format(block.getLocation().getBlockY()));
+                        message = Utils.replace(message, "%z%", numberFormat.format(block.getLocation().getBlockZ()));
+                        message = Utils.replace(message, "%corner%", "2");
+                        message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        break;
+                    }
+                    case "Waiting Zone Corner 1": {
+                        NumberFormat numberFormat = NumberFormat.getInstance();
+                        numberFormat.setMaximumFractionDigits(2);
+                        Block block = event.getBlock();
+                        String format = numberFormat.format(block.getLocation().getBlockX()) + ";" + numberFormat.format(block.getLocation().getBlockY()) + ";" + numberFormat.format(block.getLocation().getBlockZ());
+                        arena.setWaitingZoneCorner1(format);
+                        Utils.getSelectingCorners().remove(player);
+                        String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Waiting Zone Set");
+                        message = Utils.replace(message, "%x%", numberFormat.format(block.getLocation().getBlockX()));
+                        message = Utils.replace(message, "%y%", numberFormat.format(block.getLocation().getBlockY()));
+                        message = Utils.replace(message, "%z%", numberFormat.format(block.getLocation().getBlockZ()));
+                        message = Utils.replace(message, "%corner%", "1");
+                        message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        break;
+                    }
+                    case "Waiting Zone Corner 2": {
+                        NumberFormat numberFormat = NumberFormat.getInstance();
+                        numberFormat.setMaximumFractionDigits(2);
+                        Block block = event.getBlock();
+                        String format = numberFormat.format(block.getLocation().getBlockX()) + ";" + numberFormat.format(block.getLocation().getBlockY()) + ";" + numberFormat.format(block.getLocation().getBlockZ());
+                        arena.setWaitingZoneCorner2(format);
+                        Utils.getSelectingCorners().remove(player);
+                        String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Waiting Zone Set");
+                        message = Utils.replace(message, "%x%", numberFormat.format(block.getLocation().getBlockX()));
+                        message = Utils.replace(message, "%y%", numberFormat.format(block.getLocation().getBlockY()));
+                        message = Utils.replace(message, "%z%", numberFormat.format(block.getLocation().getBlockZ()));
+                        message = Utils.replace(message, "%corner%", "2");
+                        message = Utils.replace(message, "%arenaID%", arena.getArenaID());
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -311,6 +440,66 @@ public class PlayerListener implements Listener {
                     }
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerClickInventoryEvent(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player))
+            return;
+        Player player = (Player) event.getWhoClicked();
+        if (Utils.isInArenaSelectorPlayers(player)) {
+            event.setCancelled(true);
+            ItemStack selectedItem = event.getCurrentItem();
+            if (selectedItem == null) {
+                return;
+            }
+            if (selectedItem.getType() == Material.AIR) {
+                return;
+            }
+            String nextMaterial = Main.getInstance().getConfiguration().getString("Configuration.Arena Selector.Menu.Next Page Item");
+            ItemStack nextPageItem = Main.VERSION_HANDLER.createItemStack(nextMaterial, 1, (short) 0);
+            if (event.getSlot() == 53 && selectedItem == nextPageItem) {
+                int newPage = (Utils.getArenaSelectorPlayers().get(player) + 1);
+                ArenaSelectorMenu.open(player, newPage);
+                return;
+            }
+            String backMaterial = Main.getInstance().getConfiguration().getString("Configuration.Arena Selector.Menu.Back Page Item");
+            ItemStack backPageItem = Main.VERSION_HANDLER.createItemStack(backMaterial, 1, (short) 0);
+            if (event.getSlot() == 45 && selectedItem == backPageItem) {
+                int newPage = (Utils.getArenaSelectorPlayers().get(player) - 1);
+                ArenaSelectorMenu.open(player, newPage);
+                return;
+            }
+            if (!Main.VERSION_HANDLER.isCustomItem(selectedItem)) {
+                return;
+            }
+
+            String data = Main.VERSION_HANDLER.getData(selectedItem);
+            if(!data.contains("arenaID=")) {
+                return;
+            }
+
+            String arenaID = data.split("=")[1];
+            Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
+            if (arena == null) {
+                return;
+            }
+
+            ArenaManager.getArenaManager().handleJoin(player, arena);
+            if (Utils.isInArenaSelectorPlayers(player)) {
+                Utils.getArenaSelectorPlayers().remove(player);
+            }
+            player.closeInventory();
+        }
+    }
+
+    @EventHandler
+    public void onPlayerCloseInventory(InventoryCloseEvent event) {
+        if (!(event.getPlayer() instanceof Player))
+            return;
+        if (Utils.isInArenaSelectorPlayers((Player) event.getPlayer())) {
+            Utils.getArenaSelectorPlayers().remove((Player) event.getPlayer());
         }
     }
 

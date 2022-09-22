@@ -4,6 +4,7 @@ import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.ArenaManager;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -11,6 +12,35 @@ import org.bukkit.entity.Player;
 import java.util.*;
 
 public class Utils {
+    private static final Map<Player, String> selectingCorners = new HashMap<>();
+    private static final List<Player> buildingPlayers = new ArrayList<>();
+    private static final Map<Player, Integer> arenaSelectorPlayers = new HashMap<>();
+
+    public static List<Player> getBuildingPlayers() {
+        return buildingPlayers;
+    }
+
+    public static boolean isInBuildingPlayers(Player player) {
+        return buildingPlayers.contains(player);
+    }
+
+    public static boolean isSelectingCorners(Player player) {
+        return selectingCorners.containsKey(player);
+    }
+
+    public static boolean isInArenaSelectorPlayers(Player player) {
+        return arenaSelectorPlayers.containsKey(player);
+    }
+
+    public static Map<Player, Integer> getArenaSelectorPlayers() {
+        return arenaSelectorPlayers;
+    }
+
+    public static Map<Player, String> getSelectingCorners() {
+        return selectingCorners;
+    }
+
+
     public static String colorize(String message) {
      return ChatColor.translateAlternateColorCodes('&', message);
     }
