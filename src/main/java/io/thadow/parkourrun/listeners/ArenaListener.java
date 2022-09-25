@@ -360,9 +360,7 @@ public class ArenaListener implements Listener {
     @EventHandler
     public void onPlayerDeathEvent(PlayerDeathEvent event) {
         Player player = event.getEntity();
-        if (ArenaManager.getArenaManager().getArena(player) != null) {
-            player.spigot().respawn();
-        }
+        player.spigot().respawn();
     }
 
     @EventHandler
@@ -372,14 +370,14 @@ public class ArenaListener implements Listener {
             Arena arena = ArenaManager.getArenaManager().getArena(player);
             if (arena.getArenaStatus() == ArenaStatus.PLAYING || arena.getArenaStatus() == ArenaStatus.ENDING) {
                 Location spawnLocation = ArenaManager.getArenaManager().getArena(player).getSpawn();
-                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.teleport(spawnLocation), 20L);
+                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.teleport(spawnLocation), 10L);
             } else {
                 Location waitLocation = ArenaManager.getArenaManager().getArena(player).getWaitLocation();
-                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.teleport(waitLocation), 20L);
+                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.teleport(waitLocation), 10L);
             }
         } else if (ArenaManager.getArenaManager().getArena(player) == null) {
             Location lobbyLocation = Utils.getLobbyLocation();
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.teleport(lobbyLocation), 20L);
+            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> player.teleport(lobbyLocation), 10L);
         }
     }
 

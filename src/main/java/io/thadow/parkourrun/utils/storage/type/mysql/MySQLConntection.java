@@ -54,9 +54,7 @@ public class MySQLConntection {
             }
         } catch (SQLException | ClassNotFoundException e) {
             Bukkit.getConsoleSender().sendMessage(Utils.colorize("&cError while connecting to the database."));
-            if (Main.isDebugEnabled()) {
-                Debugger.debug(DebugType.ALERT, "Error cause: " + e.getCause().toString());
-            }
+            Debugger.debug(DebugType.ALERT, "Error cause: " + e.getCause().toString());
             Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aEnabling local storage..."));
             Storage.getStorage().setupStorage(StorageType.LOCAL);
             Main.setMysql(false);

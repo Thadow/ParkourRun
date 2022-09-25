@@ -2,9 +2,13 @@ package io.thadow.parkourrun.listeners;
 
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.arena.Arena;
+import io.thadow.parkourrun.arena.status.ArenaStatus;
+import io.thadow.parkourrun.items.Items;
 import io.thadow.parkourrun.managers.ArenaManager;
+import io.thadow.parkourrun.managers.CheckpointManager;
 import io.thadow.parkourrun.managers.ConfigurationManager;
 import io.thadow.parkourrun.managers.SignsManager;
+import io.thadow.parkourrun.menu.Menu;
 import io.thadow.parkourrun.menu.menus.ArenaSelectorMenu;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.SignsConfiguration;
@@ -24,13 +28,11 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerPreLoginEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,54 @@ public class PlayerListener implements Listener {
             }
         } else {
             Storage.getStorage().createPlayer(player);
+        }
+
+        if (Main.isBungeecord() && !Main.isLobbyServer()) {
+            if (ArenaManager.getArenaManager().getArenas().size() >= 1) {
+                Arena arena = ArenaManager.getArenaManager().getArenas().get(0);
+                ArenaManager.getArenaManager().handleJoin(player, arena);
+            }
+        }
+
+        String gamemode = Main.getInstance().getConfiguration().getString("Configuration.Lobby.Configurations.GameMode");
+        player.setGameMode(GameMode.valueOf(gamemode));
+        boolean fly = Main.getInstance().getConfiguration().getBoolean("Configuration.Lobby.Configurations.Disable Flight");
+        boolean setFliying = Main.getInstance().getConfiguration().getBoolean("Configuration.Lobby.Configurations.Set Flying");
+        if (fly) {
+            player.setAllowFlight(false);
+        }
+        if (setFliying) {
+            player.setFlying(true);
+        }
+        player.getInventory().clear();
+        Items.giveLobbyItemsTo(player);
+    }
+
+    @EventHandler
+    public void onPlayerPreJoin2(PlayerLoginEvent event) {
+        if (Main.isBungeecord() && !Main.isLobbyServer()) {
+            if (ArenaManager.getArenaManager().getArenas().size() >= 1) {
+                if (ArenaManager.getArenaManager().getArenas().get(0).getArenaStatus() == ArenaStatus.PLAYING) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Playing");
+                    message = Utils.format(message);
+                    event.disallow(PlayerLoginEvent.Result.KICK_OTHER, Utils.colorize(message));
+                }
+                if (ArenaManager.getArenaManager().getArenas().get(0).getArenaStatus() == ArenaStatus.ENDING) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Ending");
+                    message = Utils.format(message);
+                    event.disallow(PlayerLoginEvent.Result.KICK_OTHER, Utils.colorize(message));
+                }
+                if (ArenaManager.getArenaManager().getArenas().get(0).getArenaStatus() == ArenaStatus.RESTARTING) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Restarting");
+                    message = Utils.format(message);
+                    event.disallow(PlayerLoginEvent.Result.KICK_OTHER, Utils.colorize(message));
+                }
+                if (ArenaManager.getArenaManager().getArenas().get(0).getArenaStatus() == ArenaStatus.DISABLED && !event.getPlayer().hasPermission("parkourrun.commands.admin")) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Arena Disabled");
+                    message = Utils.format(message);
+                    event.disallow(PlayerLoginEvent.Result.KICK_OTHER, Utils.colorize(message));
+                }
+            }
         }
     }
 
@@ -278,6 +328,7 @@ public class PlayerListener implements Listener {
                             String starting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Starting");
                             String playing = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Playing");
                             String ending = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Ending");
+                            String restarting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Restarting");
                             String disabled = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Disabled");
                             String status;
                             switch (arena.getArenaStatus()) {
@@ -292,6 +343,9 @@ public class PlayerListener implements Listener {
                                     break;
                                 case ENDING:
                                     status = ending;
+                                    break;
+                                case RESTARTING:
+                                    status = restarting;
                                     break;
                                 case DISABLED:
                                     status = disabled;
@@ -361,6 +415,7 @@ public class PlayerListener implements Listener {
                     String starting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Starting");
                     String playing = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Playing");
                     String ending = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Ending");
+                    String restarting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Restarting");
                     String disabled = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Disabled");
                     String status;
                     switch (arena.getArenaStatus()) {
@@ -375,6 +430,9 @@ public class PlayerListener implements Listener {
                             break;
                         case ENDING:
                             status = ending;
+                            break;
+                        case RESTARTING:
+                            status = restarting;
                             break;
                         case DISABLED:
                             status = disabled;
@@ -474,9 +532,55 @@ public class PlayerListener implements Listener {
             if (!Main.VERSION_HANDLER.isCustomItem(selectedItem)) {
                 return;
             }
-
             String data = Main.VERSION_HANDLER.getData(selectedItem);
-            if(!data.contains("arenaID=")) {
+            if (Main.isBungeecord()) {
+                if(!data.contains("server=")) {
+                    return;
+                }
+            } else {
+                if(!data.contains("arenaID=")) {
+                    return;
+                }
+            }
+
+            if (Main.isBungeecord()) {
+                String server = data.split("=")[1];
+                if (!Utils.isBungeeArena(server)) {
+                    return;
+                }
+                String newData;
+                newData = Utils.bungeeArenas.get(server);
+                if (newData == null) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Unknown Arena");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    player.closeInventory();
+                    return;
+                }
+                if (newData.split("/-/")[3].equals("PLAYING")) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Playing");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    player.closeInventory();
+                    return;
+                }
+                if (newData.split("/-/")[3].equals("RESTARTING")) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Restarting");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    player.closeInventory();
+                    return;
+                }
+                if (newData.split("/-/")[3].equals("ENDING")) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Ending");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    player.closeInventory();
+                    return;
+                }
+                if (!Utils.sendPlayerTo(player, server)) {
+                    player.closeInventory();
+                }
                 return;
             }
 
@@ -491,6 +595,50 @@ public class PlayerListener implements Listener {
                 Utils.getArenaSelectorPlayers().remove(player);
             }
             player.closeInventory();
+        }
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        ItemStack itemInHand = player.getItemInHand();
+
+        if (Main.VERSION_HANDLER.isCustomItem(itemInHand)) {
+            String data = Main.VERSION_HANDLER.getData(itemInHand);
+            if (data.equals("ArenaSelectorItem")) {
+                Menu.openArenaSelectorMenuTo(player, 1);
+                return;
+            }
+            if (data.equals("LeaveItemLobby")) {
+                String lobbyID = Main.getInstance().getConfiguration().getString("Configuration.BungeeCord.Lobby Server");
+                Utils.sendPlayerTo(player, lobbyID);
+                return;
+            }
+            if (data.equals("LeaveItemArena")) {
+                Arena arena = ArenaManager.getArenaManager().getArena(player);
+                if (arena != null) {
+                    ArenaManager.getArenaManager().removePlayer(player, arena.getArenaStatus() == ArenaStatus.ENDING);
+                    player.teleport(Utils.getLobbyLocation());
+                }
+                return;
+            }
+            if (data.equals("BackCheckpointItem")) {
+                Arena arena = ArenaManager.getArenaManager().getArena(player);
+                if (arena != null) {
+                    if (arena.getCheckpoints().size() == 0) {
+                        return;
+                    }
+                    if (arena.getCheckpoints() == null) {
+                        return;
+                    }
+                    int currentCheckpointID = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);
+                    if (currentCheckpointID == 0) {
+                        return;
+                    }
+                    Location location = CheckpointManager.getCheckpointManager().getCheckpointLocation(arena, currentCheckpointID);
+                    player.teleport(location);
+                }
+            }
         }
     }
 

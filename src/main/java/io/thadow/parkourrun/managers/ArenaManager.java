@@ -93,7 +93,13 @@ public class ArenaManager {
             return false;
         }
         if (arena.getArenaStatus() == ArenaStatus.PLAYING) {
-            String message = Main.getMessagesConfiguration().getString("Messages.Arena.In Game");
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Playing");
+            message = Utils.format(message);
+            player.sendMessage(message);
+            return false;
+        }
+        if (arena.getArenaStatus() == ArenaStatus.RESTARTING) {
+            String message = Main.getMessagesConfiguration().getString("Messages.Arena.Restarting");
             message = Utils.format(message);
             player.sendMessage(message);
             return false;

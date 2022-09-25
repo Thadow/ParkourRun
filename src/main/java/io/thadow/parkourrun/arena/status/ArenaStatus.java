@@ -5,5 +5,6 @@ public enum ArenaStatus {
     STARTING,
     PLAYING,
     ENDING,
-    DISABLED;
+    RESTARTING,
+    DISABLED
 }

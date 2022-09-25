@@ -33,6 +33,10 @@ public class SignsManager {
                     path = "Status.Ending.Material";
                     data = "Status.Ending.Data";
                     break;
+                case RESTARTING:
+                    path = "Status.Restarting.Material";
+                    data = "Status.Restarting.Data";
+                    break;
                 case DISABLED:
                     path = "Status.Disabled.Material";
                     data = "Status.Disabled.Data";

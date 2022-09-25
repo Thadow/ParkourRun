@@ -14,6 +14,9 @@ import io.thadow.parkourrun.commands.ParkourRunCommand;
 import io.thadow.parkourrun.managers.PlayerDataManager;
 import io.thadow.parkourrun.managers.ScoreboardManager;
 import io.thadow.parkourrun.managers.SignsManager;
+import io.thadow.parkourrun.socket.DataSenderSocket;
+import io.thadow.parkourrun.socket.DataSenderTask;
+import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.MainConfiguration;
 import io.thadow.parkourrun.utils.configurations.MessagesConfiguration;
 import io.thadow.parkourrun.utils.configurations.ScoreboardsConfiguration;
@@ -28,6 +31,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.xml.crypto.Data;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -40,6 +44,8 @@ public class Main extends JavaPlugin {
     private static boolean debug = false;
     private static boolean lobby = false;
     private static boolean versionSupported = false;
+    private static boolean bungeecord = false;
+    private static boolean lobbyServer = false;
     private static final String version = Bukkit.getServer().getClass().getName().split("\\.")[3];
 
     @Override
@@ -81,6 +87,12 @@ public class Main extends JavaPlugin {
         if (getConfiguration().contains("Configuration.Lobby.Location.World")) {
             lobby = true;
         }
+        if (getConfiguration().getBoolean("Configuration.BungeeCord.Enabled")) {
+            bungeecord = true;
+        }
+        if (getConfiguration().getBoolean("Configuration.BungeeCord.Is Lobby Server")) {
+            lobbyServer = true;
+        }
         getCommand("parkourrun").setExecutor(new ParkourRunCommand());
         getCommand("leave").setExecutor(new LeaveCommand());
         registerListeners(new ArenaListener(), new PlayerListener(), new ArenaEventsListener());
@@ -99,33 +111,67 @@ public class Main extends JavaPlugin {
                 Storage.getStorage().setupStorage(StorageType.LOCAL);
             }
         }
-        new SignsManager();
-        ArenaManager.getArenaManager().loadArenas();
         PlayerDataManager.getPlayerDataManager().loadPlayers();
-        new ParkourRunAPI();
-        new PAPIExpansion(this).register();
         ScoreboardManager.getScoreboardManager().startScoreboards();
+        if (isBungeecord()) {
+            if (!isLobbyServer()) {
+                new ParkourRunAPI();
+                new PAPIExpansion(this).register();
+            }
+        } else {
+            new ParkourRunAPI();
+            new PAPIExpansion(this).register();
+        }
+        getServer().getMessenger().registerOutgoingPluginChannel(this, "BungeeCord");
+        if (isBungeecord()) {
+            if (isLobbyServer()) {
+                if (Storage.getStorage().getStorageType() != StorageType.MySQL) {
+                    Bukkit.getConsoleSender().sendMessage(Utils.colorize("&cYou can't use BungeeMode with out using MySQL Storage!"));
+                    Bukkit.getPluginManager().disablePlugin(this);
+                }
+                return;
+            } else {
+                if (Storage.getStorage().getStorageType() != StorageType.MySQL) {
+                    Bukkit.getConsoleSender().sendMessage(Utils.colorize("&cYou can't use BungeeMode with out using MySQL Storage!"));
+                    Bukkit.getPluginManager().disablePlugin(this);
+                }
+                DataSenderSocket.lobbies.addAll(getConfiguration().getStringList("Configuration.BungeeCord.Sockets"));
+                ArenaManager.getArenaManager().loadArenas();
+                DataSenderTask.start();
+            }
+            return;
+        } else {
+            new SignsManager();
+            ArenaManager.getArenaManager().loadArenas();
+        }
     }
 
     @Override
     public void onDisable() {
         super.onDisable();
         for (Arena arena : ArenaManager.getArenaManager().getArenas()) {
+            String removeMessage = Utils.getRemoveMessage();
+            DataSenderSocket.sendMessage(removeMessage);
             if (arena.getArenaStatus() == ArenaStatus.PLAYING) {
                 arena.finalizeArena(true);
             } else if (arena.getArenaStatus() == ArenaStatus.ENDING) {
                 for (Player players : arena.getPlayers()) {
                     players.teleport(players.getWorld().getSpawnLocation());
                 }
+                arena.getPlayers().clear();
+                arena.setArenaStatus(ArenaStatus.DISABLED);
             }
         }
-        PlayerDataManager.getPlayerDataManager().savePlayers();
         if (mysql) {
             try {
                 MySQLConntection.getConnection().close();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+        }
+        PlayerDataManager.getPlayerDataManager().savePlayers();
+        if (isBungeecord() && !isLobbyServer()) {
+            DataSenderSocket.disable();
         }
     }
 
@@ -175,5 +221,13 @@ public class Main extends JavaPlugin {
 
     public static void setIsLobbyPresent(boolean isLobbyPresent) {
         lobby = isLobbyPresent;
+    }
+
+    public static boolean isBungeecord() {
+        return bungeecord;
+    }
+
+    public static boolean isLobbyServer() {
+        return lobbyServer;
     }
 }

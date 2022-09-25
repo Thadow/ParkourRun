@@ -86,6 +86,7 @@ public class ParkourRunAPI {
             String starting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Starting");
             String playing = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Playing");
             String ending = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Ending");
+            String restarting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Restarting");
             String disabled = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Disabled");
             String status;
             switch (arena.getArenaStatus()) {
@@ -100,6 +101,9 @@ public class ParkourRunAPI {
                     break;
                 case ENDING:
                     status = ending;
+                    break;
+                case RESTARTING:
+                    status = restarting;
                     break;
                 case DISABLED:
                     status = disabled;

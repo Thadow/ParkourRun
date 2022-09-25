@@ -4,6 +4,7 @@ import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.data.PlayerData;
 import io.thadow.parkourrun.managers.PlayerDataManager;
 import io.thadow.parkourrun.utils.Utils;
+import io.thadow.parkourrun.utils.configurations.MainConfiguration;
 import io.thadow.parkourrun.utils.storage.type.local.LocalStorage;
 import io.thadow.parkourrun.utils.storage.type.mysql.MySQLConntection;
 import io.thadow.parkourrun.utils.storage.type.mysql.MySQLStorage;
@@ -57,11 +58,8 @@ public class Storage {
 
     public void removePlayer(Player sender, Player target) {
         if (getStorageType() == StorageType.LOCAL) {
-            if (!LocalStorage.containsPlayer(target)) {
-                sender.sendMessage("El jugador no existe");
-            } else {
+            if (LocalStorage.containsPlayer(target)) {
                 LocalStorage.removePlayerData(target);
-                sender.sendMessage("Jugador removido correctamente");
             }
         }
     }
@@ -72,12 +70,12 @@ public class Storage {
             LocalStorage.setup();
         } else if (type == StorageType.MySQL) {
             this.type = StorageType.MySQL;
-            String host = Main.getMessagesConfiguration().getString("Configuration.MySQL.Host");
-            int port = Main.getMessagesConfiguration().getInt("Configuration.MySQL.Port");
-            String database = Main.getMessagesConfiguration().getString("Configuration.MySQL.Database");
-            String username = Main.getMessagesConfiguration().getString("Configuration.MySQL.Username");
-            String password = Main.getMessagesConfiguration().getString("Configuration.MySQL.Password");
-            boolean useSSL = Main.getMessagesConfiguration().getBoolean("Configuration.MySQL.SSL");
+            String host = Main.getInstance().getConfiguration().getString("Configuration.MySQL.Host");
+            int port = Main.getInstance().getConfiguration().getInt("Configuration.MySQL.Port");
+            String database = Main.getInstance().getConfiguration().getString("Configuration.MySQL.Database");
+            String username = Main.getInstance().getConfiguration().getString("Configuration.MySQL.Username");
+            String password = Main.getInstance().getConfiguration().getString("Configuration.MySQL.Password");
+            boolean useSSL = Main.getInstance().getConfiguration().getBoolean("Configuration.MySQL.SSL");
             MySQLConntection mySQLConntection = new MySQLConntection();
             mySQLConntection.setup(host, port, database, username, password, useSSL);
         }
@@ -87,7 +85,7 @@ public class Storage {
     public void transformData(String from, String to) {
         int created = 0;
         int updated = 0;
-        int loaded = 0;
+        int loaded;
         if (from.equalsIgnoreCase("MySQL") && to.equalsIgnoreCase("LOCAL")) {
             this.type = StorageType.TRANSFORM;
             String host = Main.getInstance().getConfiguration().getString("Configuration.MySQL.Host");
@@ -119,7 +117,7 @@ public class Storage {
             int total = updated;
             Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aTotal changed: " + total));
             Main.getInstance().getConfiguration().set("Configuration.StorageType", "LOCAL");
-            Main.getInstance().saveConfig();
+            MainConfiguration.mainConfiguration.save();
             Bukkit.getConsoleSender().sendMessage("&aPlease restart the server.");
         } else if (from.equalsIgnoreCase("LOCAL") && to.equalsIgnoreCase("MySQL")) {
             this.type = StorageType.TRANSFORM;
@@ -156,7 +154,7 @@ public class Storage {
             int total = created + updated;
             Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aTotal changed: " + total));
             Main.getInstance().getConfiguration().set("Configuration.StorageType", "MySQL");
-            Main.getInstance().saveConfig();
+            MainConfiguration.mainConfiguration.save();
             Bukkit.getConsoleSender().sendMessage("&aPlease restart the server.");
         }
     }

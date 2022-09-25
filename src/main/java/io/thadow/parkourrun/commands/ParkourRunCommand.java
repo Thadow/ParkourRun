@@ -9,6 +9,8 @@ import io.thadow.parkourrun.menu.Menu;
 import io.thadow.parkourrun.utils.Permission;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.parkourrun.utils.configurations.MainConfiguration;
+import io.thadow.parkourrun.utils.debug.Debugger;
+import io.thadow.parkourrun.utils.debug.type.DebugType;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -17,6 +19,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.List;
 
@@ -30,8 +33,22 @@ public class ParkourRunCommand implements CommandExecutor {
         Player player = (Player) sender;
         if (args.length == 2 && args[0].equalsIgnoreCase("join")) {
             if (player.hasPermission("parkourrun.commands.join")) {
+                if (ArenaManager.getArenaManager().getArena(player) != null && Main.isBungeecord()) {
+                    return true;
+                }
                 String arenaID = args[1];
                 if (arenaID.equalsIgnoreCase("random")) {
+                    if (Main.isBungeecord() && Main.isLobbyServer()) {
+                        String arena = Utils.getAvailableBungeeArena();
+                        if (!arena.equals("NO ARENAS AVAILABLE")) {
+                            Utils.sendPlayerTo(player, arena);
+                        } else {
+                                String message = Main.getMessagesConfiguration().getString("Messages.Arena.No Arenas Available");
+                                message = Utils.format(message);
+                                player.sendMessage(message);
+                        }
+                        return true;
+                    }
                     if (!ArenaManager.getArenaManager().joinRandom(player)) {
                         String message = Main.getMessagesConfiguration().getString("Messages.Arena.No Arenas Available");
                         message = Utils.format(message);
@@ -39,6 +56,48 @@ public class ParkourRunCommand implements CommandExecutor {
                         return true;
                     }
                     return true;
+                }
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    if (Utils.isBungeeArena(arenaID)) {
+                            if (Utils.bungeeArenas.containsKey(arenaID)) {
+                                String[] split = Utils.bungeeArenas.get(arenaID).split("/-/");
+                                if (split[3] == null) {
+                                    Debugger.debug(DebugType.ALERT, "&cError while trying to connect to a server");
+                                    return true;
+                                }
+                                if (split[3].equals("PLAYING")) {
+                                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Playing");
+                                    message = Utils.format(message);
+                                    player.sendMessage(message);
+                                    return true;
+                                }
+                                if (split[3].equals("ENDING")) {
+                                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Ending");
+                                    message = Utils.format(message);
+                                    player.sendMessage(message);
+                                    return true;
+                                }
+                                if (split[3].equals("RESTARTING")) {
+                                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Restarting");
+                                    message = Utils.format(message);
+                                    player.sendMessage(message);
+                                    return true;
+                                }
+                                if (split[3].equals("DISABLED")) {
+                                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Arena Disabled");
+                                    message = Utils.format(message);
+                                    player.sendMessage(message);
+                                    return true;
+                                }
+                                Utils.sendPlayerTo(player, arenaID);
+                                return true;
+                            }
+                    } else {
+                        String message = Main.getMessagesConfiguration().getString("Messages.Arena.Unknown Arena");
+                        message = Utils.format(message);
+                        player.sendMessage(message);
+                        return true;
+                    }
                 }
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -72,12 +131,21 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 1 && args[0].equalsIgnoreCase("gui")) {
             if (player.hasPermission("parkourrun.commands.gui")) {
-                Menu.openArenaSelectorMenuFor(player, 1);
+                if (Main.isBungeecord() && !Main.isLobbyServer()) {
+                    Arena arena = ArenaManager.getArenaManager().getArena(player);
+                    if (arena != null) {
+                        return true;
+                    }
+                }
+                    Menu.openArenaSelectorMenuTo(player, 1);
             } else {
                 Permission.deny(player, "parkourrun.commands.gui");
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setSpawn")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[1];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -116,6 +184,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setWaitSpawn")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[1];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -154,6 +225,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 1 && args[0].equalsIgnoreCase("setLobby")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && !Main.isLobbyServer()) {
+                    return true;
+                }
                 NumberFormat numberFormat = NumberFormat.getInstance();
                 numberFormat.setMaximumFractionDigits(2);
                 String locationString = player.getWorld().getName() + ";" + numberFormat.format(player.getLocation().getX()) + ";"
@@ -182,6 +256,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setMinPlayers")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 if (NumberUtils.isNumber(args[1])) {
                     String arenaID = args[2];
                     Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
@@ -220,6 +297,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setMaxPlayers")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 if (NumberUtils.isNumber(args[1])) {
                     String arenaID = args[2];
                     Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
@@ -258,6 +338,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setWaitTime")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 if (NumberUtils.isNumber(args[1])) {
                     String arenaID = args[2];
                     Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
@@ -296,6 +379,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setReEnableTime")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 if (NumberUtils.isNumber(args[1])) {
                     String arenaID = args[2];
                     Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
@@ -334,6 +420,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setEndingTime")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 if (NumberUtils.isNumber(args[1])) {
                     String arenaID = args[2];
                     Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
@@ -372,6 +461,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setMaxTime")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 if (NumberUtils.isNumber(args[1])) {
                     String arenaID = args[2];
                     Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
@@ -410,6 +502,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length >= 3 && args[0].equalsIgnoreCase("setArenaName")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[1];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -445,6 +540,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setWinCorner") && args[1].equalsIgnoreCase("1")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[2];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -471,6 +569,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setWinCorner") && args[1].equalsIgnoreCase("2")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[2];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -497,6 +598,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setArenaCorner") && args[1].equalsIgnoreCase("1")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[2];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -523,6 +627,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setArenaCorner") && args[1].equalsIgnoreCase("2")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[2];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -549,6 +656,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 3 && args[0].equalsIgnoreCase("setWaitingCorner") && args[1].equalsIgnoreCase("1")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[2];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -575,6 +685,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
     } else if (args.length == 3 && args[0].equalsIgnoreCase("setWaitingCorner") && args[1].equalsIgnoreCase("2")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[2];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -602,6 +715,9 @@ public class ParkourRunCommand implements CommandExecutor {
 
         } else if (args.length == 2 && args[0].equalsIgnoreCase("addCheckPoint")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[1];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -666,6 +782,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("deleteLastCheckpoint")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[1];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -705,7 +824,13 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("createArena")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
-                if (!Main.isLobbyPresent()) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    String message = Main.getMessagesConfiguration().getString("Messages.Arena.Can't Create On Lobby");
+                    message = Utils.format(message);
+                    player.sendMessage(message);
+                    return true;
+                }
+                if (!Main.isLobbyPresent() && !Main.isLobbyServer()) {
                     String message = Main.getMessagesConfiguration().getString("Messages.Unknown Lobby");
                     message = Utils.format(message);
                     player.sendMessage(message);
@@ -726,6 +851,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("deleteArena")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[1];
                 if (ArenaManager.getArenaManager().deleteArena(arenaID)) {
                     String message = Main.getMessagesConfiguration().getString("Messages.Arena.Arena Deleted");
@@ -741,6 +869,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("disableArena")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[1];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -764,7 +895,7 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
-                arena.setEnabled(false);
+                arena.setEnabled(false, true);
                 String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Disabled.Message");
                 message = Utils.format(message);
                 player.sendMessage(message);
@@ -773,6 +904,9 @@ public class ParkourRunCommand implements CommandExecutor {
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("enableArena")) {
             if (player.hasPermission("parkourrun.commands.admin")) {
+                if (Main.isBungeecord() && Main.isLobbyServer()) {
+                    return true;
+                }
                 String arenaID = args[1];
                 Arena arena = ArenaManager.getArenaManager().getArenaByID(arenaID);
                 if (arena == null) {
@@ -790,7 +924,7 @@ public class ParkourRunCommand implements CommandExecutor {
                     player.sendMessage(message);
                     return true;
                 }
-                arena.setEnabled(true);
+                arena.setEnabled(true, false);
                 String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Enabled");
                 message = Utils.format(message);
                 player.sendMessage(message);

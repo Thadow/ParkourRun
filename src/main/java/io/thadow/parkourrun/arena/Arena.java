@@ -3,6 +3,7 @@ package io.thadow.parkourrun.arena;
 import io.thadow.parkourrun.Main;
 import io.thadow.parkourrun.api.event.*;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
+import io.thadow.parkourrun.items.Items;
 import io.thadow.parkourrun.managers.CooldownManager;
 import io.thadow.parkourrun.managers.SignsManager;
 import io.thadow.parkourrun.utils.configurations.ArenaConfiguration;
@@ -39,7 +40,7 @@ public class Arena {
     private int minPlayers, maxPlayers;
     private Location spawn, waitLocation;
     private int reEnableTime, endingTime;
-    private ArenaStatus arenaStatus = ArenaStatus.WAITING;
+    private ArenaStatus arenaStatus;
     private final List<Player> players = new ArrayList<>();
     private int fireworksTaskID;
     private Map<Integer, String> checkpoints;
@@ -159,6 +160,7 @@ public class Arena {
                 String starting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Starting");
                 String playing = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Playing");
                 String ending = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Ending");
+                String restarting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Restarting");
                 String disabled = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Disabled");
                 String status;
                 switch (arena.getArenaStatus()) {
@@ -173,6 +175,9 @@ public class Arena {
                         break;
                     case ENDING:
                         status = ending;
+                        break;
+                    case RESTARTING:
+                        status = restarting;
                         break;
                     case DISABLED:
                         status = disabled;
@@ -345,7 +350,21 @@ public class Arena {
             return;
         }
         players.add(player);
+        player.getInventory().clear();
+        String gamemode = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Configurations.GameMode");
+        player.setGameMode(GameMode.valueOf(gamemode));
+        boolean fly = Main.getInstance().getConfiguration().getBoolean("Configuration.Arenas.Configurations.Disable Flight");
+        boolean setFliying = Main.getInstance().getConfiguration().getBoolean("Configuration.Arenas.Configurations.Set Flying");
+        if (fly) {
+            player.setAllowFlight(false);
+        }
+        if (setFliying) {
+            player.setFlying(true);
+        }
+        Items.giveArenaItemsTo(player, true);
         player.teleport(getWaitLocation());
+        player.setFireTicks(0);
+        player.setFoodLevel(20);
         String message = Main.getMessagesConfiguration().getString("Messages.Arena.Player Join");
         message = Utils.replace(message, "%player%", player.getName());
         message = Utils.replace(message, "%current%", String.valueOf(getPlayers().size()));
@@ -437,6 +456,8 @@ public class Arena {
         for (Player players : getPlayers()) {
             setCurrentPlayerCheckpoint(players, 0);
             players.teleport(getSpawn());
+            players.getInventory().clear();
+            Items.giveArenaItemsTo(players, false);
         }
         List<String> messages = Main.getMessagesConfiguration().getStringList("Messages.Arena.Started.Message");
         for (String message : messages) {
@@ -463,6 +484,7 @@ public class Arena {
 
     public void finalizeArena(boolean closingServer) {
         if (closingServer) {
+            setArenaStatus(ArenaStatus.DISABLED);
             teleportLobby(true);
             return;
         }
@@ -502,6 +524,7 @@ public class Arena {
         Debugger.debug(DebugType.INFO, "&7ArenaStatus: " + arenaStatus);
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             teleportLobby(false);
+            setArenaStatus(ArenaStatus.RESTARTING);
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
                 setWinner(null);
                 this.time = getDefTime();
@@ -558,16 +581,24 @@ public class Arena {
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
             fireworksTaskID = scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
                 if (getArenaStatus() == ArenaStatus.ENDING  && getPlayers().contains(getWinner()) && getWinner() != null) {
-                    fireworksForWinner(winner);
+                        fireworksForWinner(winner);
                 } else {
                     cancel(this.fireworksTaskID);
                 }
             }, 0L, 20L);
+
+            int time = Main.getInstance().getConfiguration().getInt("Configuration.Fireworks For Winner Time");
+            scheduler.runTaskLater(Main.getInstance(), () -> {
+                if (scheduler.isCurrentlyRunning(fireworksTaskID)) {
+                    cancel(this.fireworksTaskID);
+                }
+            }, 20L * time);
         }
         Debugger.debug(DebugType.INFO, "&7Arena " + arenaID + " finalized (With winner)");
         Debugger.debug(DebugType.INFO, "&7ArenaStatus: " + arenaStatus);
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             teleportLobby(false);
+            setArenaStatus(ArenaStatus.RESTARTING);
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
                 setWinner(null);
                 this.time = getDefTime();
@@ -597,12 +628,24 @@ public class Arena {
 
 
     public void teleportLobby(boolean disabling) {
+        if (Main.isBungeecord() && !Main.isLobbyServer()) {
+            for (Player player : getPlayers()) {
+                String lobbyServer = Main.getInstance().getConfiguration().getString("Configuration.BungeeCord.Lobby Server");
+                player.getInventory().clear();
+                Utils.sendPlayerTo(player, lobbyServer);
+            }
+        }
         if (disabling) {
+            for (Player player : getPlayers()) {
+                player.getInventory().clear();
+            }
             getPlayers().clear();
             return;
         }
         for (Player player : getPlayers()) {
+            player.getInventory().clear();
             player.teleport(Utils.getLobbyLocation());
+            Items.giveLobbyItemsTo(player);
         }
         getPlayers().clear();
     }
@@ -892,18 +935,29 @@ public class Arena {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
+    public void setEnabled(boolean enabled, boolean edit) {
         this.enabled = enabled;
         configuration.set("Enabled", enabled);
         configuration.save();
         if (!enabled) {
-            teleportLobby(true);
+            if (edit) {
+                teleportLobby(true);
+            }
+            if (arenaStatus == ArenaStatus.STARTING) {
+                setArenaStatus(ArenaStatus.WAITING);
+            }
             setArenaStatus(ArenaStatus.DISABLED);
             Bukkit.getPluginManager().callEvent(new ArenaDisableEvent(this));
             String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Arena Disabled.Message To Players");
             message = Utils.format(message);
             broadcast(message);
+            getPlayers().clear();
+            setWinner(null);
         } else {
+            setWinner(null);
+            setMaxTime(getDefMaxTime(), false, true);
+            setTime(getDefTime(), false, true);
+            getPlayers().clear();
             setArenaStatus(ArenaStatus.WAITING);
             Bukkit.getPluginManager().callEvent(new ArenaEnableEvent(this));
         }

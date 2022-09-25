@@ -25,8 +25,17 @@ public class LeaveCommand implements CommandExecutor {
                 player.sendMessage(message);
                 return true;
             }
+            if (Main.isBungeecord()) {
+                if (!Main.isLobbyServer()) {
+                    String lobbyServer = Main.getInstance().getConfiguration().getString("Configuration.BungeeCord.Lobby Server");
+                    player.getInventory().clear();
+                    Utils.sendPlayerTo(player, lobbyServer);
+                    return true;
+                }
+            }
             ArenaManager.getArenaManager().removePlayer(player, arena.getArenaStatus() == ArenaStatus.ENDING);
             player.teleport(Utils.getLobbyLocation());
+            player.getInventory().clear();
         } else {
             Permission.deny(player, "parkourrun.commands.leave");
         }

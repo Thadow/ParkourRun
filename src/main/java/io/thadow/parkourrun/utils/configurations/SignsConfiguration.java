@@ -25,6 +25,8 @@ public class SignsConfiguration extends ConfigurationManager {
         signsConfiguration.getConfiguration().addDefault("Status.Playing.Data", 14);
         signsConfiguration.getConfiguration().addDefault("Status.Ending.Material", "STAINED_GLASS");
         signsConfiguration.getConfiguration().addDefault("Status.Ending.Data", 15);
+        signsConfiguration.getConfiguration().addDefault("Status.Restarting.Material", "STAINED_GLASS");
+        signsConfiguration.getConfiguration().addDefault("Status.Restarting.Data", 15);
         signsConfiguration.getConfiguration().addDefault("Status.Disabled.Material", "STAINED_GLASS");
         signsConfiguration.getConfiguration().addDefault("Status.Disabled.Data", 8);
         signsConfiguration.save();
