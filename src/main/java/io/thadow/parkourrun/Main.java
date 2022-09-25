@@ -56,17 +56,18 @@ public class Main extends JavaPlugin {
         try {
             supp = Class.forName("io.thadow.parkourrun.server." + version);
         } catch (ClassNotFoundException e) {
-            this.getLogger().severe("I can't run on your version: " + version);
+            Bukkit.getConsoleSender().sendMessage(Utils.colorize("&cUnsupported minecraft version: " + version));
             versionSupported = false;
             return;
         }
         try {
-            this.getLogger().info("Loadin support for: " + version);
+            Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aTrying to load NMS suport for: " + version));
             VERSION_HANDLER = (VersionHandler) supp.getConstructor(Class.forName("org.bukkit.plugin.Plugin"), String.class).newInstance(this, version);
             versionSupported = true;
+            Bukkit.getConsoleSender().sendMessage(Utils.colorize("&aNMS support sucessfully loaded for: " + version));
         } catch (InstantiationException | NoSuchMethodException | ClassNotFoundException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
-            this.getLogger().severe("Could not load support for server version: " + version);
+            Bukkit.getConsoleSender().sendMessage("&cUnable to load NMS support for: " + version);
             versionSupported = false;
         }
     }
@@ -76,7 +77,8 @@ public class Main extends JavaPlugin {
         super.onEnable();
         instance = this;
         if (!versionSupported) {
-            this.getLogger().severe("I can't run on your version: " + version);
+            Bukkit.getConsoleSender().sendMessage(Utils.colorize("&cYour server version is unsupported: " + version));
+            Bukkit.getConsoleSender().sendMessage(Utils.colorize("&cDisabling..."));
             Bukkit.getPluginManager().disablePlugin(this);
         }
         MainConfiguration.init();
