@@ -350,9 +350,12 @@ public class ArenaListener implements Listener {
     public void onPlayerFoodLevelChange(FoodLevelChangeEvent event) {
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
-            if (ArenaManager.getArenaManager().getArena(player) != null) {
-                event.setFoodLevel(20);
-                event.setCancelled(true);
+            Arena arena = ArenaManager.getArenaManager().getArena(player);
+            if (arena != null) {
+                if (Main.getInstance().getConfiguration().getBoolean("Configuration.Arenas.Configurations.Disable Hunger")) {
+                    event.setFoodLevel(20);
+                    event.setCancelled(true);
+                }
             }
         }
     }

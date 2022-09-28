@@ -24,7 +24,8 @@ public class Items {
             itemStack.setItemMeta(itemMeta);
             itemStack = Main.VERSION_HANDLER.addData(itemStack, "ArenaSelectorItem");
 
-            player.getInventory().setItem((slot + 1), itemStack);
+            slot--;
+            player.getInventory().setItem(slot, itemStack);
         }
 
         if (Main.getInstance().getConfiguration().getBoolean("Configuration.Items.Lobby.Leave Item.Enabled")) {
@@ -40,19 +41,18 @@ public class Items {
             itemStack.setItemMeta(itemMeta);
             itemStack = Main.VERSION_HANDLER.addData(itemStack, "LeaveItemLobby");
 
-            player.getInventory().setItem((slot + 1), itemStack);
+            slot--;
+            player.getInventory().setItem(slot, itemStack);
         }
-
-        player.updateInventory();
     }
 
-    public static void giveArenaItemsTo(Player player, boolean onlyLeave) {
-        if (Main.getInstance().getConfiguration().getBoolean("Configuration.Items.Arena Back Checkpoint Item.Enabled") && !onlyLeave) {
-            String material = Main.getInstance().getConfiguration().getString("Configuration.Items.Arena.Back Checkpoint Item.Item");
-            int data = Main.getInstance().getConfiguration().getInt("Configuration.Items.Arena.Back Checkpoint.Item.Data");
-            int slot = Main.getInstance().getConfiguration().getInt("Configuration.Items.Arena.Back Checkpoint.Item.Slot");
-            String name = Main.getInstance().getConfiguration().getString("Configuration.Items.Arena.Back Checkpoint Item.Name");
-            List<String> lore = Main.getInstance().getConfiguration().getStringList("Configuration.Items.Arena.Back Checkpoint Item.Lore");
+    public static void giveArenaItemsTo(Player player) {
+        if (Main.getInstance().getConfiguration().getBoolean("Configuration.Items.Arena.Checkpoint Item.Enabled")) {
+            String material = Main.getInstance().getConfiguration().getString("Configuration.Items.Arena.Checkpoint Item.Item");
+            int data = Main.getInstance().getConfiguration().getInt("Configuration.Items.Arena.Checkpoint Item.Data");
+            int slot = Main.getInstance().getConfiguration().getInt("Configuration.Items.Arena.Checkpoint Item.Slot");
+            String name = Main.getInstance().getConfiguration().getString("Configuration.Items.Arena.Checkpoint Item.Name");
+            List<String> lore = Main.getInstance().getConfiguration().getStringList("Configuration.Items.Arena.Checkpoint Item.Lore");
             ItemStack itemStack = Main.VERSION_HANDLER.createItemStack(material, 1, (short) data);
             ItemMeta itemMeta = itemStack.getItemMeta();
             itemMeta.setDisplayName(Utils.colorize(name));
@@ -60,7 +60,8 @@ public class Items {
             itemStack.setItemMeta(itemMeta);
             itemStack = Main.VERSION_HANDLER.addData(itemStack, "BackCheckpointItem");
 
-            player.getInventory().setItem((slot + 1), itemStack);
+            slot--;
+            player.getInventory().setItem(slot, itemStack);
         }
 
         if (Main.getInstance().getConfiguration().getBoolean("Configuration.Items.Arena.Leave Item.Enabled")) {
@@ -76,9 +77,8 @@ public class Items {
             itemStack.setItemMeta(itemMeta);
             itemStack = Main.VERSION_HANDLER.addData(itemStack, "LeaveItemArena");
 
-            player.getInventory().setItem((slot + 1), itemStack);
+            slot--;
+            player.getInventory().setItem(slot, itemStack);
         }
-
-        player.updateInventory();
     }
 }

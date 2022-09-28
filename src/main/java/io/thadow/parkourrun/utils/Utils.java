@@ -1,77 +1,117 @@
 package io.thadow.parkourrun.utils;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.thadow.parkourrun.Main;
+import io.thadow.parkourrun.api.proxy.BungeeArena;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.ArenaManager;
 import io.thadow.parkourrun.utils.debug.Debugger;
 import io.thadow.parkourrun.utils.debug.type.DebugType;
-import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.*;
 
 public class Utils {
     private static final Map<Player, String> selectingCorners = new HashMap<>();
     private static final List<Player> buildingPlayers = new ArrayList<>();
     private static final Map<Player, Integer> arenaSelectorPlayers = new HashMap<>();
-    public static final Map<String, String> bungeeArenas = new HashMap<>();
-    public static final List<String> arenaData = new ArrayList<>();
+    public static final List<BungeeArena> bungeeArenasTest = new ArrayList<>();
 
-    public static void removeBungeeArena(String serverID, String from) {
-        if (bungeeArenas.containsKey(serverID)) {
-            arenaData.removeIf(string -> string.startsWith(serverID));
-            bungeeArenas.remove(serverID);
+    public static void removeBungeeArenaTest(String serverID, String from) {
+        if (bungeeArenasTest.removeIf(arena -> arena.getServerID().equals(serverID))) {
             Debugger.debug(DebugType.INFO, "&aArena Info removed from: " + from);
         }
     }
 
-    public static void updateBungeeArena(String data, String from) {
-        String serverID = data.split("/-/")[0];
-        if (bungeeArenas.containsKey(serverID)) {
-            if (bungeeArenas.get(serverID).equals(data)) {
-                return;
-            }
-        } else {
-            bungeeArenas.put(serverID, data);
-            arenaData.add(data);
+    public static void updateBungeeArenaTest(BungeeArena arena, String from) {
+        if (bungeeArenasTest.contains(arena)) {
+            return;
+        }
+        if (bungeeArenasTest.size() == 0) {
+            bungeeArenasTest.add(arena);
             Debugger.debug(DebugType.INFO, "&aArena Info added from: " + from);
             return;
         }
-        if (bungeeArenas.containsKey(serverID)) {
-            arenaData.removeIf(string -> string.startsWith(serverID));
-            bungeeArenas.remove(serverID);
-            Debugger.debug(DebugType.INFO, "&aArena Info updated from: " + from);
-        } else {
-            bungeeArenas.put(serverID, data);
-            arenaData.add(data);
-            Debugger.debug(DebugType.INFO, "&aArena Info added from: " + from);
+        for (BungeeArena bungeeArena : bungeeArenasTest) {
+            if (bungeeArena.getServerID().equals(arena.getServerID())) {
+                if (!bungeeArena.getStatus().equals(arena.getStatus())) {
+                    if (bungeeArenasTest.removeIf(savedArena -> savedArena.getServerID().equals(arena.getServerID()))) {
+                        Debugger.debug(DebugType.INFO, "&aArena Info updated from: " + from);
+                        bungeeArenasTest.add(arena);
+                    }
+                } else if (bungeeArena.getCurrentPlayers() != arena.getCurrentPlayers()) {
+                    if (bungeeArenasTest.removeIf(savedArena -> savedArena.getServerID().equals(arena.getServerID()))) {
+                        Debugger.debug(DebugType.INFO, "&aArena Info updated from: " + from);
+                        bungeeArenasTest.add(arena);
+                    }
+                } else if (bungeeArena.getMaxPlayers() != arena.getMaxPlayers()) {
+                    if (bungeeArenasTest.removeIf(savedArena -> savedArena.getServerID().equals(arena.getServerID()))) {
+                        Debugger.debug(DebugType.INFO, "&aArena Info updated from: " + from);
+                        bungeeArenasTest.add(arena);
+                    }
+                } else if (!bungeeArena.getArenaName().equals(arena.getArenaName())) {
+                    if (bungeeArenasTest.removeIf(savedArena -> savedArena.getServerID().equals(arena.getServerID()))) {
+                        Debugger.debug(DebugType.INFO, "&aArena Info updated from: " + from);
+                        bungeeArenasTest.add(arena);
+                    }
+                } else if (!bungeeArena.getArenaID().equals(arena.getArenaID())) {
+                    if (bungeeArenasTest.removeIf(savedArena -> savedArena.getServerID().equals(arena.getServerID()))) {
+                        Debugger.debug(DebugType.INFO, "&aArena Info updated from: " + from);
+                        bungeeArenasTest.add(arena);
+                    }
+                }
+            }
         }
     }
 
     public static String getAvailableBungeeArena() {
-        for (String arena : bungeeArenas.values()) {
-            String[] split = arena.split("/-/");
-            if (split[3].equals("WAITING")) {
-                return split[0];
-            }
-            if (split[3].equals("STARTING")) {
-                return split[0];
+        for (BungeeArena arena : bungeeArenasTest) {
+            if (arena.getStatus().equals("STARTING")) {
+                if (arena.getCurrentPlayers() != arena.getMaxPlayers()) {
+                    return arena.getServerID();
+                }
+            } else if (arena.getStatus().equals("WAITING")) {
+                return arena.getServerID();
             }
         }
-        return "NO ARENAS AVAILABLE";
+        return "NO ARENAS";
     }
 
-    public static boolean isBungeeArena(String server) {
-            return bungeeArenas.containsKey(server);
+    public static List<Arena> getAvailableArenas() {
+        List<Arena> arenas = new ArrayList<>();
+        for (Arena arena : ArenaManager.getArenaManager().getArenas()) {
+            if (arena.getArenaStatus() != ArenaStatus.DISABLED) {
+                arenas.add(arena);
+            }
+        }
+        return arenas;
     }
+
+    public static boolean isBungeeArenaTest(String serverID) {
+        for (BungeeArena arena : bungeeArenasTest) {
+            if (arena.getServerID().equals(serverID)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static String getBungeeArenaStatus(String serverID) {
+        for (BungeeArena arena : bungeeArenasTest) {
+            if (arena.getServerID().equals(serverID)) {
+                return arena.getStatus();
+            }
+        }
+        return null;
+    }
+
 
     public static boolean sendPlayerTo(Player player, String server) {
         try {

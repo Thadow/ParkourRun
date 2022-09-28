@@ -31,7 +31,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.xml.crypto.Data;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.Arrays;
@@ -157,6 +156,7 @@ public class Main extends JavaPlugin {
             if (arena.getArenaStatus() == ArenaStatus.PLAYING) {
                 arena.finalizeArena(true);
             } else if (arena.getArenaStatus() == ArenaStatus.ENDING) {
+                arena.restoreWaitingZone();
                 for (Player players : arena.getPlayers()) {
                     players.teleport(players.getWorld().getSpawnLocation());
                 }

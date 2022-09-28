@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import io.thadow.parkourrun.api.proxy.BungeeArena;
 import io.thadow.parkourrun.utils.Utils;
 import io.thadow.proxy.debug.Debugger;
 import io.thadow.proxy.debug.type.DebugType;
@@ -85,20 +86,20 @@ public class ArenaSocket implements Runnable {
                 String status = jsonObject.get("status").getAsString();
                 int currentPlayers = jsonObject.get("currentPlayers").getAsInt();
                 int maxPlayers = jsonObject.get("maxPlayers").getAsInt();
-                // Format -> serverID/-/arenaID/-/arenaName/-/status/-/currentPlayers/-/maxPlayers
                 String format = serverID
-                        + "/-/" + arenaID
-                        + "/-/" + arenaName
-                        + "/-/" + status
-                        + "/-/" + currentPlayers
-                        + "/-/" + maxPlayers;
-                Utils.updateBungeeArena(format, socket.getInetAddress().toString());
+                        + "/-/-/" + arenaID
+                        + "/-/-/" + arenaName
+                        + "/-/-/" + status
+                        + "/-/-/" + currentPlayers
+                        + "/-/-/" + maxPlayers;
+                BungeeArena arena = new BungeeArena(serverID, arenaID, arenaName, status, currentPlayers, maxPlayers);
+                Utils.updateBungeeArenaTest(arena, socket.getInetAddress().toString());
             } else if (jsonObject.get("Type").getAsString().equals("REMOVE")) {
                 if (!jsonObject.has("serverID")) {
                     return;
                 }
                 String serverID = jsonObject.get("serverID").getAsString();
-                Utils.removeBungeeArena(serverID, socket.getInetAddress().toString());
+                Utils.removeBungeeArenaTest(serverID, socket.getInetAddress().toString());
             }
         }
     }

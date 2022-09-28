@@ -40,7 +40,7 @@ public class ParkourRunCommand implements CommandExecutor {
                 if (arenaID.equalsIgnoreCase("random")) {
                     if (Main.isBungeecord() && Main.isLobbyServer()) {
                         String arena = Utils.getAvailableBungeeArena();
-                        if (!arena.equals("NO ARENAS AVAILABLE")) {
+                        if (!arena.equals("NO ARENAS")) {
                             Utils.sendPlayerTo(player, arena);
                         } else {
                                 String message = Main.getMessagesConfiguration().getString("Messages.Arena.No Arenas Available");
@@ -58,40 +58,37 @@ public class ParkourRunCommand implements CommandExecutor {
                     return true;
                 }
                 if (Main.isBungeecord() && Main.isLobbyServer()) {
-                    if (Utils.isBungeeArena(arenaID)) {
-                            if (Utils.bungeeArenas.containsKey(arenaID)) {
-                                String[] split = Utils.bungeeArenas.get(arenaID).split("/-/");
-                                if (split[3] == null) {
+                    if (Utils.isBungeeArenaTest(arenaID)) {
+                        String status = Utils.getBungeeArenaStatus(arenaID);
+                                if (status == null) {
                                     Debugger.debug(DebugType.ALERT, "&cError while trying to connect to a server");
                                     return true;
                                 }
-                                if (split[3].equals("PLAYING")) {
+                                if (status.equals("PLAYING")) {
                                     String message = Main.getMessagesConfiguration().getString("Messages.Arena.Playing");
                                     message = Utils.format(message);
                                     player.sendMessage(message);
                                     return true;
                                 }
-                                if (split[3].equals("ENDING")) {
+                                if (status.equals("ENDING")) {
                                     String message = Main.getMessagesConfiguration().getString("Messages.Arena.Ending");
                                     message = Utils.format(message);
                                     player.sendMessage(message);
                                     return true;
                                 }
-                                if (split[3].equals("RESTARTING")) {
+                                if (status.equals("RESTARTING")) {
                                     String message = Main.getMessagesConfiguration().getString("Messages.Arena.Restarting");
                                     message = Utils.format(message);
                                     player.sendMessage(message);
                                     return true;
                                 }
-                                if (split[3].equals("DISABLED")) {
+                                if (status.equals("DISABLED")) {
                                     String message = Main.getMessagesConfiguration().getString("Messages.Arena.Arena Disabled");
                                     message = Utils.format(message);
                                     player.sendMessage(message);
                                     return true;
                                 }
                                 Utils.sendPlayerTo(player, arenaID);
-                                return true;
-                            }
                     } else {
                         String message = Main.getMessagesConfiguration().getString("Messages.Arena.Unknown Arena");
                         message = Utils.format(message);
@@ -165,9 +162,9 @@ public class ParkourRunCommand implements CommandExecutor {
                 }
                 NumberFormat numberFormat = NumberFormat.getInstance();
                 numberFormat.setMaximumFractionDigits(2);
-                String locationString = player.getWorld().getName() + ";" + numberFormat.format(player.getLocation().getX()) + ";"
-                        + numberFormat.format(player.getLocation().getY()) + ";" + numberFormat.format(player.getLocation().getZ()) + ";"
-                        + numberFormat.format(player.getLocation().getYaw()) + ";" + numberFormat.format(player.getLocation().getPitch());
+                String locationString = player.getWorld().getName() + ";" + player.getLocation().getX() + ";"
+                        + player.getLocation().getY() + ";" + player.getLocation().getZ() + ";"
+                        + player.getLocation().getYaw() + ";" + player.getLocation().getPitch();
                 arena.setSpawn(player.getLocation(), locationString);
                 String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Spawn Location Set");
                 message = Utils.replace(message, "%world%", player.getWorld().getName());
@@ -206,9 +203,9 @@ public class ParkourRunCommand implements CommandExecutor {
                 }
                 NumberFormat numberFormat = NumberFormat.getInstance();
                 numberFormat.setMaximumFractionDigits(2);
-                String locationString = player.getWorld().getName() + ";" + numberFormat.format(player.getLocation().getX()) + ";"
-                        + numberFormat.format(player.getLocation().getY()) + ";" + numberFormat.format(player.getLocation().getZ()) + ";"
-                        + numberFormat.format(player.getLocation().getYaw()) + ";" + numberFormat.format(player.getLocation().getPitch());
+                String locationString = player.getWorld().getName() + ";" + player.getLocation().getX() + ";"
+                        + player.getLocation().getY() + ";" + player.getLocation().getZ() + ";"
+                        + player.getLocation().getYaw() + ";" + player.getLocation().getPitch();
                 arena.setWaitLocation(player.getLocation(), locationString);
                 String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Wait Location Set");
                 message = Utils.replace(message, "%world%", player.getWorld().getName());
@@ -230,9 +227,9 @@ public class ParkourRunCommand implements CommandExecutor {
                 }
                 NumberFormat numberFormat = NumberFormat.getInstance();
                 numberFormat.setMaximumFractionDigits(2);
-                String locationString = player.getWorld().getName() + ";" + numberFormat.format(player.getLocation().getX()) + ";"
-                        + numberFormat.format(player.getLocation().getY()) + ";" + numberFormat.format(player.getLocation().getZ()) + ";"
-                        + numberFormat.format(player.getLocation().getYaw()) + ";" + numberFormat.format(player.getLocation().getPitch());
+                String locationString = player.getWorld().getName() + ";" + player.getLocation().getX() + ";"
+                        + player.getLocation().getY() + ";" + player.getLocation().getZ() + ";"
+                        + player.getLocation().getYaw() + ";" + player.getLocation().getPitch();
                 String[] split = locationString.split(";");
                 Main.getInstance().getConfiguration().set("Configuration.Lobby.Location.World", split[0]);
                 Main.getInstance().getConfiguration().set("Configuration.Lobby.Location.X", split[1]);
@@ -243,12 +240,12 @@ public class ParkourRunCommand implements CommandExecutor {
                 MainConfiguration.mainConfiguration.save();
                 Main.setIsLobbyPresent(true);
                 String message = Main.getMessagesConfiguration().getString("Messages.Commands.Main Command.Lobby Location Set");
-                message = Utils.replace(message, "%world%", split[0]);
-                message = Utils.replace(message, "%x%", split[1]);
-                message = Utils.replace(message, "%y%", split[2]);
-                message = Utils.replace(message, "%z%", split[3]);
-                message = Utils.replace(message, "%yaw%", split[4]);
-                message = Utils.replace(message, "%pitch%", split[5]);
+                message = Utils.replace(message, "%world%", player.getWorld().getName());
+                message = Utils.replace(message, "%x%", numberFormat.format(split[1]));
+                message = Utils.replace(message, "%y%", numberFormat.format(split[2]));
+                message = Utils.replace(message, "%z%", numberFormat.format(split[3]));
+                message = Utils.replace(message, "%yaw%", numberFormat.format(split[4]));
+                message = Utils.replace(message, "%pitch%", numberFormat.format(split[5]));
                 message = Utils.format(message);
                 player.sendMessage(message);
             } else {

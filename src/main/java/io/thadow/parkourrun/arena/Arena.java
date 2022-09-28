@@ -23,6 +23,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,15 +40,18 @@ public class Arena {
     private int maxTime, time, defTime, defMaxTime;
     private int minPlayers, maxPlayers;
     private Location spawn, waitLocation;
+    private final Location waitLocationPos1;
+    private final Location waitLocationPos2;
     private int reEnableTime, endingTime;
     private ArenaStatus arenaStatus;
     private final List<Player> players = new ArrayList<>();
     private int fireworksTaskID;
-    private Map<Integer, String> checkpoints;
+    private final Map<Integer, String> checkpoints;
     private final Map<Player, Integer> currentPlayerCheckpoint = new HashMap<>();
     private final Map<Player, Integer> nextPlayerCheckpoint = new HashMap<>();
     private final ArenaConfiguration configuration;
-    private List<Block> signs = new ArrayList<>();
+    private final List<Block> signs = new ArrayList<>();
+    private final Map<Location, Material> savedWaitingBlocks = new HashMap<>();
 
     public Arena(String arenaID) {
         this.arenaID = arenaID;
@@ -103,8 +107,27 @@ public class Arena {
         arenaCorner1 = yamlConfiguration.getString("Arena Zone Corner 1");
         arenaCorner2 = yamlConfiguration.getString("Arena Zone Corner 2");
 
-        waitingZoneCorner1 = yamlConfiguration.getString("Waiting Zone Corner 1");
-        waitingZoneCorner2 = yamlConfiguration.getString("Waiting Zone Corner 2");
+        String[] split1 = yamlConfiguration.getString("Waiting Zone Corner 1").split(";");
+        String x1 = split1[1];
+        String y1 = split1[2];
+        String z1 = split1[3];
+        waitingZoneCorner1 = x1 + ";" + y1 + ";" + z1;
+        waitLocationPos1 = new Location(Bukkit.getWorld(split1[0]), Double.parseDouble(split1[1]),
+                Double.parseDouble(split1[2]),
+                Double.parseDouble(split1[3]),
+                Float.parseFloat(split1[4]),
+                Float.parseFloat(split1[5]));
+
+        String[] split2 = yamlConfiguration.getString("Waiting Zone Corner 2").split(";");
+        String x2 = split2[1];
+        String y2 = split2[2];
+        String z2 = split2[3];
+        waitingZoneCorner2 = x2 + ";" + y2 + ";" + z2;
+        waitLocationPos2 = new Location(Bukkit.getWorld(split2[0]), Double.parseDouble(split2[1]),
+                Double.parseDouble(split2[2]),
+                Double.parseDouble(split2[3]),
+                Float.parseFloat(split2[4]),
+                Float.parseFloat(split2[5]));
 
         int totalCheckpoints = yamlConfiguration.getInt("Total Checkpoints");
         Map<Integer, String> checkpoints2 = new HashMap<>();
@@ -129,6 +152,42 @@ public class Arena {
         registerSings();
         refreshSigns(this);
         Bukkit.getPluginManager().callEvent(new ArenaPostLoadEvent(this));
+    }
+
+    public void removeWaitingZone() {
+        if (configuration.getBoolean("Extensions.On Start.Remove Waiting Zone")) {
+            if (waitLocationPos1 == null || waitLocationPos2 == null) {
+                return;
+            }
+
+            int minX, minY, minZ;
+            int maxX, maxY, maxZ;
+            minX = Math.min(waitLocationPos1.getBlockX(), waitLocationPos2.getBlockX());
+            maxX = Math.max(waitLocationPos1.getBlockX(), waitLocationPos2.getBlockX());
+            minY = Math.min(waitLocationPos1.getBlockY(), waitLocationPos2.getBlockY());
+            maxY = Math.max(waitLocationPos1.getBlockY(), waitLocationPos2.getBlockY());
+            minZ = Math.min(waitLocationPos1.getBlockZ(), waitLocationPos2.getBlockZ());
+            maxZ = Math.max(waitLocationPos1.getBlockZ(), waitLocationPos2.getBlockZ());
+
+            for (int x = minX; x < maxX; x++) {
+                for (int y = minY; y < maxY; y++) {
+                    for (int z = minZ; z < maxZ; z++) {
+                        savedWaitingBlocks.put(waitLocationPos1.getWorld().getBlockAt(x, y , z).getLocation(),
+                                waitLocationPos1.getWorld().getBlockAt(x, y , z).getType());
+                        waitLocationPos1.getWorld().getBlockAt(x, y, z).setType(Material.AIR);
+                    }
+                }
+            }
+        }
+    }
+
+    public void restoreWaitingZone() {
+        if (configuration.getBoolean("Extensions.On Start.Remove Waiting Zone")) {
+            for (Location location : savedWaitingBlocks.keySet()) {
+                Material material = savedWaitingBlocks.get(location);
+                waitLocationPos1.getWorld().getBlockAt(location).setType(material);
+            }
+        }
     }
 
     public void addSign(Location location) {
@@ -361,7 +420,7 @@ public class Arena {
         if (setFliying) {
             player.setFlying(true);
         }
-        Items.giveArenaItemsTo(player, true);
+        Items.giveArenaItemsTo(player);
         player.teleport(getWaitLocation());
         player.setFireTicks(0);
         player.setFoodLevel(20);
@@ -457,8 +516,9 @@ public class Arena {
             setCurrentPlayerCheckpoint(players, 0);
             players.teleport(getSpawn());
             players.getInventory().clear();
-            Items.giveArenaItemsTo(players, false);
+            Items.giveArenaItemsTo(players);
         }
+        removeWaitingZone();
         List<String> messages = Main.getMessagesConfiguration().getStringList("Messages.Arena.Started.Message");
         for (String message : messages) {
             message = Utils.format(message);
@@ -484,6 +544,7 @@ public class Arena {
 
     public void finalizeArena(boolean closingServer) {
         if (closingServer) {
+            restoreWaitingZone();
             setArenaStatus(ArenaStatus.DISABLED);
             teleportLobby(true);
             return;
@@ -524,8 +585,10 @@ public class Arena {
         Debugger.debug(DebugType.INFO, "&7ArenaStatus: " + arenaStatus);
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             teleportLobby(false);
+            restoreWaitingZone();
             setArenaStatus(ArenaStatus.RESTARTING);
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                savedWaitingBlocks.clear();
                 setWinner(null);
                 this.time = getDefTime();
                 this.maxTime = getDefMaxTime();
@@ -577,7 +640,7 @@ public class Arena {
                 Utils.playSound(players, soundPath);
             }
         }
-        if (Main.getInstance().getConfiguration().getBoolean("Configuration.Arena.Fireworks For Winner.Enabled")) {
+        if (Main.getInstance().getConfiguration().getBoolean("Configuration.Arenas.Fireworks For Winner.Enabled")) {
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
             fireworksTaskID = scheduler.scheduleSyncRepeatingTask(Main.getInstance(), () -> {
                 if (getArenaStatus() == ArenaStatus.ENDING  && getPlayers().contains(getWinner()) && getWinner() != null) {
@@ -587,7 +650,7 @@ public class Arena {
                 }
             }, 0L, 20L);
 
-            int time = Main.getInstance().getConfiguration().getInt("Configuration.Fireworks For Winner Time");
+            int time = Main.getInstance().getConfiguration().getInt("Configuration.Arenas.Fireworks For Winner.Time");
             scheduler.runTaskLater(Main.getInstance(), () -> {
                 if (scheduler.isCurrentlyRunning(fireworksTaskID)) {
                     cancel(this.fireworksTaskID);
@@ -598,8 +661,10 @@ public class Arena {
         Debugger.debug(DebugType.INFO, "&7ArenaStatus: " + arenaStatus);
         Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
             teleportLobby(false);
+            restoreWaitingZone();
             setArenaStatus(ArenaStatus.RESTARTING);
             Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                savedWaitingBlocks.clear();
                 setWinner(null);
                 this.time = getDefTime();
                 this.maxTime = getDefMaxTime();
@@ -719,15 +784,29 @@ public class Arena {
         configuration.save();
     }
 
-    public void setWaitingZoneCorner1(String waitingZoneCorner1) {
-        this.waitingZoneCorner1 = waitingZoneCorner1;
-        configuration.set("Waiting Zone Corner 1", waitingZoneCorner1);
+    public void setWaitingZoneCorner1(Location waitingZoneCorner1) {
+        int x = waitingZoneCorner1.getBlockX();
+        int y = waitingZoneCorner1.getBlockY();
+        int z = waitingZoneCorner1.getBlockZ();
+        this.waitingZoneCorner1 = x + ";" + y + ";" + z;
+        String world = waitingZoneCorner1.getWorld().getName();
+        float yaw = waitingZoneCorner1.getYaw();
+        float pitch = waitingZoneCorner1.getPitch();
+        String full = world + ";" + x + ";" + y + ";" + z + ";" + yaw + ";" + pitch;
+        configuration.set("Waiting Zone Corner 1", full);
         configuration.save();
     }
 
-    public void setWaitingZoneCorner2(String waitingZoneCorner2) {
-        this.waitingZoneCorner2 = waitingZoneCorner2;
-        configuration.set("Waiting Zone Corner 2", waitingZoneCorner2);
+    public void setWaitingZoneCorner2(Location waitingZoneCorner2) {
+        int x = waitingZoneCorner2.getBlockX();
+        int y = waitingZoneCorner2.getBlockY();
+        int z = waitingZoneCorner2.getBlockZ();
+        this.waitingZoneCorner2 = x + ";" + y + ";" + z;
+        String world = waitingZoneCorner2.getWorld().getName();
+        float yaw = waitingZoneCorner2.getYaw();
+        float pitch = waitingZoneCorner2.getPitch();
+        String full = world + ";" + x + ";" + y + ";" + z + ";" + yaw + ";" + pitch;
+        configuration.set("Waiting Zone Corner 2", full);
         configuration.save();
     }
 

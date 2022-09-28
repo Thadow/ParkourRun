@@ -63,9 +63,6 @@ public class Remote {
     }
 
     public void disable() {
-        Debugger.debug(DebugType.INFO, "&cDisabling Remote Socket: " + remote + " - " + socket.getInetAddress());
-        String removeMessage = Utils.getRemoveMessage();
-        DataSenderSocket.sendMessage(removeMessage);
         DataSenderSocket.sockets.remove(remote);
         try {
             socket.close();

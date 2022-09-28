@@ -7,7 +7,7 @@
     <groupId>io.thadow.parkourrun</groupId>
     <artifactId>ParkourRun</artifactId>
     <packaging>pom</packaging>
-    <version>Stable-Build3</version>
+    <version>Stable-Build4</version>
     <build>
         <plugins>
             <plugin>

@@ -1,6 +1,7 @@
 package io.thadow.parkourrun.menu.menus;
 
 import io.thadow.parkourrun.Main;
+import io.thadow.parkourrun.api.proxy.BungeeArena;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.managers.ArenaManager;
@@ -17,7 +18,7 @@ import java.util.List;
 public class ArenaSelectorMenu {
 
     public static void open(Player player, int page) {
-        String title = Main.getInstance().getConfiguration().getString("Configuration.Items.Lobby.Arena Selector.Title");
+        String title = Main.getInstance().getConfiguration().getString("Configuration.Arena Selector.Menu.Title");
         Inventory inventory = Bukkit.createInventory(null, 54, Utils.colorize(title));
         List<Arena> arenas = ArenaManager.getArenaManager().getArenas();
 
@@ -27,30 +28,22 @@ public class ArenaSelectorMenu {
 
         // Pagina 1 -> 0
         // Pagina 2 -> 28
-        List<Arena> availableArenas = new ArrayList<>();
-        for (Arena arena : arenas) {
-            if (arena.isEnabled() && arena.getArenaStatus() != ArenaStatus.DISABLED) {
-                availableArenas.add(arena);
-            }
-        }
         if (Main.isBungeecord() && Main.isLobbyServer()) {
-            if (Utils.bungeeArenas.size() == 0) {
+            if (Utils.bungeeArenasTest.size() == 0) {
                 String message = Main.getMessagesConfiguration().getString("Messages.Arena.No Arenas Available");
                 message = Utils.format(message);
                 player.sendMessage(message);
                 return;
             }
 
-            for (int i = 45 * (page - 1); i < Utils.arenaData.size(); i++) {
-                String description = Utils.arenaData.get(i);
-                // Format -> serverID/-/arenaID/-/arenaName/-/status/-/currentPlayers/-/maxPlayers
-                String[] arenaData = description.split("/-/");
-                String serverID = arenaData[0];
-                String arenaID = arenaData[1];
-                String arenaName = arenaData[2];
-                String currentStatus = arenaData[3];
-                int currentPlayers = Integer.parseInt(arenaData[4]);
-                int maxPlayers = Integer.parseInt(arenaData[5]);
+            for (int i = 45 * (page - 1); i < Utils.bungeeArenasTest.size(); i++) {
+                BungeeArena arena = Utils.bungeeArenasTest.get(i);
+                String serverID = arena.getServerID();
+                String arenaID = arena.getArenaID();
+                String arenaName = arena.getArenaName();
+                String currentStatus = arena.getStatus();
+                int currentPlayers = arena.getCurrentPlayers();
+                int maxPlayers = arena.getMaxPlayers();
                 ItemStack arenaItem = null;
                 String material;
                 int data;
@@ -60,6 +53,7 @@ public class ArenaSelectorMenu {
                 String waiting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Waiting");
                 String starting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Starting");
                 String playing = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Playing");
+                String restarting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Restarting");
                 String ending = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Ending");
                 switch (currentStatus) {
                     case "WAITING": {
@@ -140,7 +134,7 @@ public class ArenaSelectorMenu {
                     case "RESTARTING": {
                         material = Main.getInstance().getConfiguration().getString("Configuration.Arena Selector.Menu.Restarting.Item");
                         data = Main.getInstance().getConfiguration().getInt("Configuration.Arena Selector.Menu.Restarting.Data");
-                        status = ending;
+                        status = restarting;
                         arenaItem = Main.VERSION_HANDLER.createItemStack(material, 1, (short) data);
                         name = Main.getInstance().getConfiguration().getString("Configuration.Arena Selector.Menu.Item Name");
                         name = name.replace("%arenaName%", arenaName);
@@ -220,6 +214,7 @@ public class ArenaSelectorMenu {
             return;
         }
 
+        List<Arena> availableArenas = Utils.getAvailableArenas();
         for (int i = 45 *(page-1); i < availableArenas.size(); i++) {
             Arena arena = availableArenas.get(i);
             if (!arena.isEnabled() || arena.getArenaStatus() == ArenaStatus.DISABLED) {
@@ -234,6 +229,7 @@ public class ArenaSelectorMenu {
             String waiting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Waiting");
             String starting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Starting");
             String playing = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Playing");
+            String restarting = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Restarting");
             String ending = Main.getInstance().getConfiguration().getString("Configuration.Arenas.Status.Ending");
             if (arena.getArenaStatus() == ArenaStatus.WAITING) {
                 material = Main.getInstance().getConfiguration().getString("Configuration.Arena Selector.Menu.Waiting.Item");
@@ -304,7 +300,7 @@ public class ArenaSelectorMenu {
             } else if (arena.getArenaStatus() == ArenaStatus.RESTARTING) {
                 material = Main.getInstance().getConfiguration().getString("Configuration.Arena Selector.Menu.Restarting.Item");
                 data = Main.getInstance().getConfiguration().getInt("Configuration.Arena Selector.Menu.Restarting.Data");
-                status = playing;
+                status = restarting;
                 arenaItem = Main.VERSION_HANDLER.createItemStack(material, 1, (short) data);
                 name = Main.getInstance().getConfiguration().getString("Configuration.Arena Selector.Menu.Item Name");
                 name = name.replace("%arenaName%", arena.getArenaDisplayName());
@@ -389,10 +385,10 @@ public class ArenaSelectorMenu {
             }
         }
         if (type.equals("BUNGEE")) {
-            if (Utils.bungeeArenas.keySet().size() % 45 == 0) {
-                return (Utils.bungeeArenas.keySet().size() / 45);
+            if (Utils.bungeeArenasTest.size() % 45 == 0) {
+                return (Utils.bungeeArenasTest.size() / 45);
             } else {
-                return (Utils.bungeeArenas.keySet().size() / 45) + 1;
+                return (Utils.bungeeArenasTest.size() / 45) + 1;
             }
         }
         return 1;

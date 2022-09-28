@@ -18,6 +18,7 @@ public class ArenaConfiguration extends ConfigurationManager {
             configuration.addDefault("Extensions.Win.Add Win On Tie", false);
             configuration.addDefault("Extensions.Lose.Add Lose On Disconnect/Leave", true);
             configuration.addDefault("Extensions.Lose.Add Lose On Tie", false);
+            configuration.addDefault("Extensions.On Start.Remove Waiting Zone", true);
             configuration.addDefault("Arena Name", configName);
             configuration.addDefault("Wait Time To Start", 15);
             configuration.addDefault("Ending Time", 5);
@@ -27,8 +28,8 @@ public class ArenaConfiguration extends ConfigurationManager {
             configuration.addDefault("Max Time", 120);
             configuration.addDefault("Spawn Location", "world;1;1;1;1.0;1.0");
             configuration.addDefault("Wait Location", "world;1;1;1;1.0;1.0");
-            configuration.addDefault("Win Zone Corner 1", "1;1;1");
-            configuration.addDefault("Win Zone Corner 2", "1;1;1");
+            configuration.addDefault("Win Zone Corner 1", "world;1;1;1;0;0");
+            configuration.addDefault("Win Zone Corner 2", "world;1;1;1;0.0");
             configuration.addDefault("Arena Zone Corner 1", "1;1;1");
             configuration.addDefault("Arena Zone Corner 2", "1;1;1");
             configuration.addDefault("Waiting Zone Corner 1", "1;1;1");

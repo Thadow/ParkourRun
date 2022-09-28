@@ -1,7 +1,7 @@
 name: ParkoruRun
 main: io.thadow.parkourrun.Main
 author: Thadow (Nicolás)
-version: Stable-Build3
+version: Stable-Build4
 api-version: 1.13
 depend: [PlaceholderAPI]
 

@@ -1,6 +1,7 @@
 package io.thadow.parkourrun.listeners;
 
 import io.thadow.parkourrun.Main;
+import io.thadow.parkourrun.api.proxy.BungeeArena;
 import io.thadow.parkourrun.arena.Arena;
 import io.thadow.parkourrun.arena.status.ArenaStatus;
 import io.thadow.parkourrun.items.Items;
@@ -26,6 +27,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.*;
@@ -51,6 +53,7 @@ public class PlayerListener implements Listener {
             Storage.getStorage().createPlayer(player);
         }
 
+        player.getInventory().clear();
         if (Main.isBungeecord() && !Main.isLobbyServer()) {
             if (ArenaManager.getArenaManager().getArenas().size() >= 1) {
                 Arena arena = ArenaManager.getArenaManager().getArenas().get(0);
@@ -58,18 +61,33 @@ public class PlayerListener implements Listener {
             }
         }
 
-        String gamemode = Main.getInstance().getConfiguration().getString("Configuration.Lobby.Configurations.GameMode");
-        player.setGameMode(GameMode.valueOf(gamemode));
-        boolean fly = Main.getInstance().getConfiguration().getBoolean("Configuration.Lobby.Configurations.Disable Flight");
-        boolean setFliying = Main.getInstance().getConfiguration().getBoolean("Configuration.Lobby.Configurations.Set Flying");
-        if (fly) {
-            player.setAllowFlight(false);
+        if (Main.isBungeecord()) {
+            if (Main.isLobbyServer()) {
+                String gamemode = Main.getInstance().getConfiguration().getString("Configuration.Lobby.Configurations.GameMode");
+                player.setGameMode(GameMode.valueOf(gamemode));
+                boolean fly = Main.getInstance().getConfiguration().getBoolean("Configuration.Lobby.Configurations.Disable Flight");
+                boolean setFliying = Main.getInstance().getConfiguration().getBoolean("Configuration.Lobby.Configurations.Set Flying");
+                if (fly) {
+                    player.setAllowFlight(false);
+                }
+                if (setFliying) {
+                    player.setFlying(true);
+                }
+                Items.giveLobbyItemsTo(player);
+            }
+        } else {
+            String gamemode = Main.getInstance().getConfiguration().getString("Configuration.Lobby.Configurations.GameMode");
+            player.setGameMode(GameMode.valueOf(gamemode));
+            boolean fly = Main.getInstance().getConfiguration().getBoolean("Configuration.Lobby.Configurations.Disable Flight");
+            boolean setFliying = Main.getInstance().getConfiguration().getBoolean("Configuration.Lobby.Configurations.Set Flying");
+            if (fly) {
+                player.setAllowFlight(false);
+            }
+            if (setFliying) {
+                player.setFlying(true);
+            }
+            Items.giveLobbyItemsTo(player);
         }
-        if (setFliying) {
-            player.setFlying(true);
-        }
-        player.getInventory().clear();
-        Items.giveLobbyItemsTo(player);
     }
 
     @EventHandler
@@ -210,8 +228,7 @@ public class PlayerListener implements Listener {
                         NumberFormat numberFormat = NumberFormat.getInstance();
                         numberFormat.setMaximumFractionDigits(2);
                         Block block = event.getBlock();
-                        String format = numberFormat.format(block.getLocation().getBlockX()) + ";" + numberFormat.format(block.getLocation().getBlockY()) + ";" + numberFormat.format(block.getLocation().getBlockZ());
-                        arena.setWaitingZoneCorner1(format);
+                        arena.setWaitingZoneCorner1(block.getLocation());
                         Utils.getSelectingCorners().remove(player);
                         String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Waiting Zone Set");
                         message = Utils.replace(message, "%x%", numberFormat.format(block.getLocation().getBlockX()));
@@ -227,8 +244,7 @@ public class PlayerListener implements Listener {
                         NumberFormat numberFormat = NumberFormat.getInstance();
                         numberFormat.setMaximumFractionDigits(2);
                         Block block = event.getBlock();
-                        String format = numberFormat.format(block.getLocation().getBlockX()) + ";" + numberFormat.format(block.getLocation().getBlockY()) + ";" + numberFormat.format(block.getLocation().getBlockZ());
-                        arena.setWaitingZoneCorner2(format);
+                        arena.setWaitingZoneCorner2(block.getLocation());
                         Utils.getSelectingCorners().remove(player);
                         String message = Main.getMessagesConfiguration().getString("Messages.Arena.Parameter Changed.Waiting Zone Set");
                         message = Utils.replace(message, "%x%", numberFormat.format(block.getLocation().getBlockX()));
@@ -506,6 +522,16 @@ public class PlayerListener implements Listener {
         if (!(event.getWhoClicked() instanceof Player))
             return;
         Player player = (Player) event.getWhoClicked();
+        Arena playerArena = ArenaManager.getArenaManager().getArena(player);
+        if (playerArena == null) {
+            if (Main.getInstance().getConfig().getBoolean("Configuration.Lobby.Configurations.Disable Move Inv Items")) {
+                event.setCancelled(true);
+            }
+        } else {
+            if (Main.getInstance().getConfig().getBoolean("Configuration.Arenas.Configurations.Disable Move Inv Items")) {
+                event.setCancelled(true);
+            }
+        }
         if (Utils.isInArenaSelectorPlayers(player)) {
             event.setCancelled(true);
             ItemStack selectedItem = event.getCurrentItem();
@@ -516,14 +542,16 @@ public class PlayerListener implements Listener {
                 return;
             }
             String nextMaterial = Main.getInstance().getConfiguration().getString("Configuration.Arena Selector.Menu.Next Page Item");
-            ItemStack nextPageItem = Main.VERSION_HANDLER.createItemStack(nextMaterial, 1, (short) 0);
+            int nextDataMaterial = Main.getInstance().getConfiguration().getInt("Configuration.Arena Selector.Menu.Next Page Item Data");
+            ItemStack nextPageItem = Main.VERSION_HANDLER.createItemStack(nextMaterial, 1, (short) nextDataMaterial);
             if (event.getSlot() == 53 && selectedItem == nextPageItem) {
                 int newPage = (Utils.getArenaSelectorPlayers().get(player) + 1);
                 ArenaSelectorMenu.open(player, newPage);
                 return;
             }
             String backMaterial = Main.getInstance().getConfiguration().getString("Configuration.Arena Selector.Menu.Back Page Item");
-            ItemStack backPageItem = Main.VERSION_HANDLER.createItemStack(backMaterial, 1, (short) 0);
+            int backDataMaterial = Main.getInstance().getConfiguration().getInt("Configuration.Arena Selector.Menu.Back Page Item Data");
+            ItemStack backPageItem = Main.VERSION_HANDLER.createItemStack(backMaterial, 1, (short) backDataMaterial);
             if (event.getSlot() == 45 && selectedItem == backPageItem) {
                 int newPage = (Utils.getArenaSelectorPlayers().get(player) - 1);
                 ArenaSelectorMenu.open(player, newPage);
@@ -545,33 +573,37 @@ public class PlayerListener implements Listener {
 
             if (Main.isBungeecord()) {
                 String server = data.split("=")[1];
-                if (!Utils.isBungeeArena(server)) {
+                if (!Utils.isBungeeArenaTest(server)) {
                     return;
                 }
-                String newData;
-                newData = Utils.bungeeArenas.get(server);
-                if (newData == null) {
+                BungeeArena arena = null;
+                for (BungeeArena arenas : Utils.bungeeArenasTest) {
+                    if (arenas.getServerID().equals(server)) {
+                        arena = arenas;
+                    }
+                }
+                if (arena == null) {
                     String message = Main.getMessagesConfiguration().getString("Messages.Arena.Unknown Arena");
                     message = Utils.format(message);
                     player.sendMessage(message);
                     player.closeInventory();
                     return;
                 }
-                if (newData.split("/-/")[3].equals("PLAYING")) {
+                if (arena.getStatus().equals("PLAYING")) {
                     String message = Main.getMessagesConfiguration().getString("Messages.Arena.Playing");
                     message = Utils.format(message);
                     player.sendMessage(message);
                     player.closeInventory();
                     return;
                 }
-                if (newData.split("/-/")[3].equals("RESTARTING")) {
+                if (arena.getStatus().equals("RESTARTING")) {
                     String message = Main.getMessagesConfiguration().getString("Messages.Arena.Restarting");
                     message = Utils.format(message);
                     player.sendMessage(message);
                     player.closeInventory();
                     return;
                 }
-                if (newData.split("/-/")[3].equals("ENDING")) {
+                if (arena.getStatus().equals("ENDING")) {
                     String message = Main.getMessagesConfiguration().getString("Messages.Arena.Ending");
                     message = Utils.format(message);
                     player.sendMessage(message);
@@ -599,36 +631,78 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onHungerLevel(FoodLevelChangeEvent event) {
+        if (event.getEntity() instanceof Player) {
+            Player player = (Player) event.getEntity();
+            Arena arena = ArenaManager.getArenaManager().getArena(player);
+            if (arena == null) {
+                if (Main.getInstance().getConfiguration().getBoolean("Configuration.Lobby.Configurations.Disable Hunger")) {
+                    event.setFoodLevel(20);
+                    event.setCancelled(true);
+                }
+            }
+        }
+    }
+
+    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         ItemStack itemInHand = player.getItemInHand();
+        if (itemInHand.getType() == null) {
+            return;
+        }
+        if (itemInHand.getType() == Material.AIR) {
+            return;
+        }
+
+        if (event.getAction().equals(Action.PHYSICAL)) {
+            return;
+        }
 
         if (Main.VERSION_HANDLER.isCustomItem(itemInHand)) {
             String data = Main.VERSION_HANDLER.getData(itemInHand);
             if (data.equals("ArenaSelectorItem")) {
+                event.setCancelled(true);
                 Menu.openArenaSelectorMenuTo(player, 1);
                 return;
             }
             if (data.equals("LeaveItemLobby")) {
-                String lobbyID = Main.getInstance().getConfiguration().getString("Configuration.BungeeCord.Lobby Server");
+                event.setCancelled(true);
+                String lobbyID = Main.getInstance().getConfiguration().getString("Configuration.Items.Lobby.Leave Item.Lobby Server");
                 Utils.sendPlayerTo(player, lobbyID);
                 return;
             }
             if (data.equals("LeaveItemArena")) {
                 Arena arena = ArenaManager.getArenaManager().getArena(player);
                 if (arena != null) {
-                    ArenaManager.getArenaManager().removePlayer(player, arena.getArenaStatus() == ArenaStatus.ENDING);
-                    player.teleport(Utils.getLobbyLocation());
+                    if (Main.isBungeecord()) {
+                        if (!Main.isLobbyServer()) {
+                            event.setCancelled(true);
+                            String lobbyId = Main.getInstance().getConfiguration().getString("Configuration.BungeeCord.Lobby Server");
+                            player.getInventory().clear();
+                            Utils.sendPlayerTo(player, lobbyId);
+                            return;
+                        }
+                    } else {
+                        event.setCancelled(true);
+                        ArenaManager.getArenaManager().removePlayer(player, arena.getArenaStatus() == ArenaStatus.ENDING);
+                        player.teleport(Utils.getLobbyLocation());
+                        Items.giveLobbyItemsTo(player);
+                    }
                 }
                 return;
             }
             if (data.equals("BackCheckpointItem")) {
                 Arena arena = ArenaManager.getArenaManager().getArena(player);
                 if (arena != null) {
+                    event.setCancelled(true);
                     if (arena.getCheckpoints().size() == 0) {
                         return;
                     }
                     if (arena.getCheckpoints() == null) {
+                        return;
+                    }
+                    if (CheckpointManager.getCheckpointManager().getPlayerNextCheckpoint(player) == null) {
                         return;
                     }
                     int currentCheckpointID = CheckpointManager.getCheckpointManager().getPlayerCurrentCheckpoint(player);
