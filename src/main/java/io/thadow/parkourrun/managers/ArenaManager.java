@@ -66,8 +66,12 @@ public class ArenaManager {
         List<Arena> arenas = Utils.getSorted(getArenas());
 
         for (Arena arena : arenas) {
-            if (handleJoin(player, arena)) {
-                return true;
+            if (arena.getArenaStatus() == ArenaStatus.STARTING) {
+                if (arena.getPlayers().size() != arena.getMaxPlayers()) {
+                    return handleJoin(player, arena);
+                } else if (arena.getArenaStatus() == ArenaStatus.WAITING) {
+                    return handleJoin(player, arena);
+                }
             }
         }
         return false;
